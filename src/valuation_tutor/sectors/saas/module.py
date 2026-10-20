@@ -85,6 +85,7 @@ TEACHING_EXAMPLES = {
     "margins": "VEEV",              # high, stable margins
     "profit_vs_cash": "DDOG",       # small accounting profit, lots of cash
     "sbc": "SNOW",                  # heavy stock-based pay
+    "growth_premium": "HUBS",       # well below the growth line
     "peers_ev_revenue": "CRWD",     # most expensive in the group
     "peer_fit": "HUBS",             # well below the growth line
     "price_vs_value": "WDAY",
@@ -137,11 +138,19 @@ class SaasSector:
         return [Concept(id=f"saas.{cid}", name=text[cid]["name"], plain=text[cid]["plain"],
                         analogy=text[cid].get("analogy", ""),
                         prerequisites=tuple(f"saas.{p}" if p in CONCEPTS else p for p in prereqs),
-                        sector=self.id)
+                        sector=self.id, check=text[cid].get("check"))
                 for cid, prereqs in CONCEPTS.items()]
 
     def path_changes(self) -> list[PathChange]:
-        return []   # milestone 2
+        lessons = self.content["lessons"]
+        return [
+            PathChange("insert_after", "margins", {
+                "id": "sbc", "concepts": ["saas.sbc"], "chart": "sbc",
+                "questions": ["margin_direction", "concept:saas.sbc"], "lesson": lessons["sbc"]}),
+            PathChange("insert_after", "multiples", {
+                "id": "growth_premium", "concepts": ["saas.growth_premium"], "chart": "peer_fit",
+                "questions": ["fit_side", "concept:saas.growth_premium"], "lesson": lessons["growth_premium"]}),
+        ]
 
     def teaching_examples(self) -> dict[str, str]:
         return dict(TEACHING_EXAMPLES)

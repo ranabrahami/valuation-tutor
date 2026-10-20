@@ -151,6 +151,11 @@ concepts:
     name: "Stock-based compensation (pay in shares)"
     plain: "Paying employees with company shares instead of cash. It doesn't use cash, but it's still a cost: new shares give existing owners a smaller slice of the company."
     analogy: "Paying the friend who helps at your lemonade stand with a share of the stand instead of cash. Your wallet is fine, but you now own less of the stand."
+    check:
+      prompt: "A company pays its engineers partly in new shares instead of cash. Who bears that cost?"
+      options: ["Existing shareholders: each now owns a smaller slice", "Nobody: no cash left the company", "The engineers"]
+      answer: 0
+      why: "No cash leaves, but the company is now split into more pieces, so every existing owner's slice shrinks. That's why this project counts it as a real cost."
   rule_of_40:
     name: "Rule of 40"
     plain: "A rule of thumb for software: revenue growth % plus free cash flow margin % should add up to at least 40. It balances growing fast against making money."
@@ -159,6 +164,23 @@ concepts:
     name: "Paying for growth"
     plain: "Investors pay higher multiples for faster-growing software companies, because today's sales are a small part of what they expect to earn later."
     analogy: "A young apple tree costs more than its apples this year suggest, because of all the apples it will grow."
+    check:
+      prompt: "Two software companies have the same sales. One grows 30% a year, the other 5%. Which usually trades at a higher EV / revenue?"
+      options: ["The one growing 30%", "The one growing 5%", "They should trade at the same multiple"]
+      answer: 0
+      why: "Investors pay for future sales. At 30% a year, sales roughly double in under three years, so each dollar of today's sales comes with many more later."
+
+lessons:
+  sbc:
+    title: "Pay in shares: a hidden cost"
+    intro: "Software companies often pay staff partly in shares instead of cash. It doesn't show up as cash going out, which is one reason their cash flow can look better than their profit. But each new share makes every existing owner's slice a little smaller."
+    look_prompt: "What share of revenue goes to pay in shares, and which way is it heading?"
+    takeaway: "Pay in shares doesn't use cash, but someone pays: the existing shareholders."
+  growth_premium:
+    title: "Paying for growth"
+    intro: "In software, investors pay much more for fast growers. This chart puts every company on a map of growth (left to right) against how expensive it is (bottom to top). The dashed line shows the typical price for each level of growth."
+    look_prompt: "Find the blue dot. Is it where you'd expect for its growth?"
+    takeaway: "Below the line means cheap for its growth. The next question is always: why? Sometimes the market sees a risk the line can't."
 
 accounting_notes:
   sbc_expense:

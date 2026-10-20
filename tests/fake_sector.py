@@ -72,7 +72,11 @@ class FakeSector:
                         prerequisites=("growth",), sector=self.id)]
 
     def path_changes(self):
-        return [PathChange("insert_after", "growth", {"id": "same_store_sales"})]
+        return [PathChange("insert_after", "growth", {
+            "id": "same_store_sales", "concepts": ["fake.same_store_sales"], "chart": "sales",
+            "questions": ["trend_growth_direction"],
+            "lesson": {"title": "Same-store sales", "intro": "Growth from existing stores.",
+                       "look_prompt": "What do you see?", "takeaway": "New stores flatter growth."}})]
 
     def teaching_examples(self):
         return {"default": "AAA"}

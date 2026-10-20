@@ -82,6 +82,9 @@ class Concept:
     analogy: str = ""       # an everyday comparison, used when re-explaining
     prerequisites: tuple[str, ...] = ()
     sector: str | None = None
+    # Optional multiple-choice check: {"prompt", "options", "answer" (index), "why"}.
+    # Core concepts keep theirs in the core locale; sector concepts supply it here.
+    check: dict | None = field(default=None, hash=False, compare=False)
 
 
 @dataclass(frozen=True)

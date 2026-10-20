@@ -253,3 +253,256 @@ app:
   col_period: "Period"
   col_value: "Value"
   col_source: "Source"
+
+# ---------------------------------------------------------------------------
+# The learning path (milestone 2)
+# ---------------------------------------------------------------------------
+stages:
+  story: {title: "Read the story", subtitle: "How big is the company, and how fast is it growing?"}
+  business: {title: "Is it a good business?", subtitle: "How much of each sale does it keep, and does it make real cash?"}
+  peers: {title: "Worth it next to its peers?", subtitle: "Compare one company's price with similar companies."}
+  value: {title: "What is it worth on its own?", subtitle: "Turn future cash into a value today, and test the guesses."}
+  beliefs: {title: "What does the market believe?", subtitle: "Work out what today's price is betting on."}
+
+bosses:
+  story: {title: "Mystery company", intro: "Here are the charts of a company whose name is hidden. Read them and answer three questions. The name is revealed at the end."}
+  business: {title: "Cash detective", intro: "Another mystery company. Does it really make money, and does that money turn into cash? Read the charts to find out."}
+  peers: {title: "Odd one out", intro: "Where does this mystery company sit among its peers? Read the charts to decide."}
+  value: {title: "Stress test", intro: "A mystery company's valuation. How sure can anyone be about its value? Read the model's charts."}
+  beliefs: {title: "The final read", intro: "One last mystery company. Put everything together: growth, cash, peers and what the price assumes."}
+
+ranks:
+  intern: "Intern"
+  analyst: "Analyst"
+  associate: "Associate"
+  vp: "Vice President"
+  director: "Director"
+  md: "Managing Director"
+
+badges:
+  growth_spotter: {name: "Growth Spotter", text: "You can read a company's growth story from its revenue chart."}
+  margin_reader: {name: "Margin Reader", text: "You know how much of each sale a company keeps, and why that matters."}
+  cash_detective: {name: "Cash Detective", text: "You can tell accounting profit from real cash."}
+  multiple_master: {name: "Multiple Master", text: "You can judge a price against similar companies."}
+  dcf_decoder: {name: "DCF Decoder", text: "You know what a DCF does and how much its guesses matter."}
+  myth_buster: {name: "Myth Buster", text: "You can work out what a share price is betting on."}
+
+lessons:
+  revenue:
+    title: "Reading a revenue chart"
+    intro: "Revenue is all the money a company takes in from customers. It's the first number analysts look at, because everything else (profit, cash, value) starts from it. Each bar on this chart is one year."
+    look_prompt: "Before we explain anything: look at the bars. What do you notice?"
+    takeaway: "Read the direction first, then the size of the steps."
+  growth:
+    title: "Growth: how fast is it getting bigger?"
+    intro: "Growth is how much bigger revenue got than the year before, in percent. A company can keep getting bigger while its growth slows: both are true at once, and that's normal as companies mature."
+    look_prompt: "Look at the small numbers above the bars. What's happening to them?"
+    takeaway: "Bigger isn't the same as faster. Watch the growth numbers, not just the bars."
+  margins:
+    title: "Margins: how much of each sale is kept?"
+    intro: "A margin is the share of each sale left over after certain costs. The gross margin counts only the direct costs of what was sold; the operating margin counts every cost of running the business."
+    look_prompt: "There are two lines. What's the biggest difference between them?"
+    takeaway: "A high gross margin means each extra sale is very profitable; the operating margin shows what's left after running the whole business."
+  cash:
+    title: "Profit on paper vs cash in the bank"
+    intro: "Accounting profit and cash are different things. Some costs in the accounts never use cash, and some spending never shows up as a cost. Investors care about cash, because cash is what can be paid out or reinvested."
+    look_prompt: "Compare the orange and blue bars. Do they tell the same story?"
+    takeaway: "Always check cash, not just profit. They can point in opposite directions."
+  multiples:
+    title: "Multiples: is the price high or low?"
+    intro: "A share price on its own says nothing: a $100 share isn't 'more expensive' than a $10 one. To compare companies, analysts divide the value of the business by its sales or profit. That's a multiple."
+    look_prompt: "Find the blue bar. Where does this company sit in the group?"
+    takeaway: "A multiple only means something next to similar companies, and a high one has to be earned."
+  dcf:
+    title: "What is the company worth on its own?"
+    intro: "A DCF (discounted cash flow) model estimates all the cash a company will produce in the future, then shrinks each future dollar into what it's worth today, and adds them up. That gives a value per share to compare with the price."
+    look_prompt: "Compare the two bars. What would you want to know before trusting the blue one?"
+    takeaway: "The model's value is only as good as its guesses. A gap is a question, not an answer."
+  sensitivity:
+    title: "How much do the guesses matter?"
+    intro: "A DCF needs two big guesses: the discount rate (the return investors demand) and long-term growth. This grid recalculates the value for different guesses, so you can see how much the answer depends on them."
+    look_prompt: "Find the box with the thick border. What happens to the numbers as you move down a row?"
+    takeaway: "If small changes in the guesses flip the answer, treat the answer with care."
+  implied:
+    title: "What is the price betting on?"
+    intro: "Instead of asking 'what is it worth?', you can run the model backwards: what growth would make today's price fair? That shows what investors are betting on, which you can then compare with what the company actually delivers."
+    look_prompt: "Compare the two bars. Is the market optimistic or cautious about this company?"
+    takeaway: "Every price contains a forecast. Your job is to decide whether that forecast is believable."
+  capstone:
+    title: "Read a whole company"
+    intro: "Time to put it together. Pick any company and answer one question from each stage: growth, cash, peers, value and what the price assumes."
+    look_prompt: "Before you start: what do you already expect to find for this company?"
+    takeaway: "That's the full analyst's read: the story, the business, the peers, the value and the market's bet."
+
+game:
+  learn: "Learn"
+  explore: "Explore"
+  continue: "Continue"
+  start: "Start"
+  replay: "Play again"
+  locked: "Locked"
+  level: "Level {n}"
+  boss: "Boss"
+  stage: "Stage {n}"
+  xp: "{xp} XP"
+  hints: "{n} hints"
+  streak: "{n}-day streak"
+  rank_label: "Your rank"
+  next_rank: "Beat the next boss to become {rank}."
+  top_rank: "You've reached the top."
+  back_to_map: "Back to the map"
+  your_turn: "Your turn first"
+  observation_placeholder: "Type what you see, in your own words. There are no wrong answers here."
+  show_me: "Show me the explanation"
+  skip_observation: "Skip"
+  explain: "The explanation"
+  check: "Check your understanding"
+  question_n: "Question {n} of {total}"
+  submit: "Check answer"
+  use_hint: "Use a hint"
+  hint_used: "One wrong answer removed."
+  no_hints: "No hints left: beat a boss to earn more."
+  correct: "Correct"
+  not_quite: "Not quite"
+  try_again: "Try again"
+  next_question: "Next question"
+  finish_level: "Finish level"
+  dont_get_it: "I don't get it"
+  explained_differently: "Let's try it another way"
+  style_plain: "In plain words"
+  style_analogy: "An everyday comparison"
+  style_other_company: "The same chart for another company"
+  style_prerequisite: "The idea this builds on"
+  level_complete: "Level complete"
+  stars_earned: "You earned {stars} of 3 stars"
+  star_finish: "Finished the level"
+  star_first_try: "Right first time"
+  star_own_words: "Described what you saw in your own words"
+  xp_earned: "+{xp} XP"
+  takeaway: "Remember"
+  skip_mastered: "You've already mastered this: skip ahead"
+  boss_ready: "Boss challenge"
+  boss_locked: "Finish this stage's levels to unlock the boss."
+  boss_passed: "Boss beaten!"
+  boss_failed: "Not this time"
+  boss_score: "{score} of {total} correct (you need {needed})."
+  boss_retry: "Try again with a new mystery company. Nothing is lost."
+  reveal: "The mystery company was {name}."
+  promoted: "Promoted to {rank}"
+  new_badge: "New badge: {badge}"
+  mastered: "Mastered: {concepts}"
+  badges: "Badges"
+  no_badges: "Badges appear here as you master ideas."
+  pick_company: "Choose a company to analyse"
+  mystery_name: "Mystery company"
+  path_done: "You've finished the whole path. Explore any company, or replay a level with another one."
+  new_term: "New word"
+  stage_done: "Done"
+
+quiz:
+  options:
+    faster: "Faster"
+    slower: "Slower"
+    about_same: "About the same"
+    up: "Went up"
+    down: "Went down"
+    above_median: "Above the median"
+    below_median: "Below the median"
+    above_line: "Above the line: pricier than its growth suggests"
+    below_line: "Below the line: cheaper than its growth suggests"
+    model_higher: "The model's value is higher than the price"
+    model_lower: "The model's value is lower than the price"
+    goes_up: "The value goes up"
+    goes_down: "The value goes down"
+    stays_same: "It stays the same"
+    more_than_half: "More than half"
+    less_than_half: "Less than half"
+    most_boxes: "Most of the boxes"
+    about_half: "About half of them"
+    few_boxes: "Few or none of them"
+    "yes": "Yes"
+    "no": "No"
+  trend_any_fall:
+    prompt: "Did {company}'s {label} fall in any of the years shown?"
+    why_yes: "Yes: it fell in {periods}. Look for a bar shorter than the one before it."
+    why_no: "No: every bar from {first} to {last} is taller than the one before it."
+  trend_peak:
+    prompt: "In which year was {company}'s {label} highest?"
+    why: "The tallest bar is {period}, at {value}."
+  growth_direction:
+    prompt: "Compare {company}'s growth in {last_period} with {first_period}. Is it growing faster, slower, or about the same?"
+    why: "Growth was {first} in {first_period} and {last} in {last_period}. Read the small numbers above the bars, not the height of the bars."
+  margin_per_hundred:
+    prompt: "In {period}, out of every {symbol}100 of sales, roughly how much did {company} keep after the costs counted in its {label}?"
+    why: "{label} was {value}, so about {symbol}{keep} of every {symbol}100 was left."
+  margin_direction:
+    prompt: "Between {first_period} and {last_period}, did {company}'s {label} go up, down or stay about the same?"
+    why: "{label} was {first} in {first_period} and {last} in {last_period}."
+  cash_vs_profit:
+    prompt: "In {period}, which was bigger for {company}?"
+    why: "{profit_label} was {profit} and {cash_label} was {cash}. Compare the bars for the latest year."
+  peer_position:
+    prompt: "Is {company}'s {label} above or below the median company in its peer group?"
+    why: "{company} is at {value}; the median is {median}."
+  peer_vs_peer:
+    prompt: "Which is more expensive on {label}: {company} or {other}?"
+    why: "{company} is at {value} and {other} at {other_value}. The longer bar is the more expensive one."
+  fit_side:
+    prompt: "Is {company} above or below the line that links {x} to price?"
+    why: "{company} trades at {actual}; the line predicts about {line} for its {x}."
+  value_gap:
+    prompt: "Does the model value one share of {company} above or below today's price?"
+    why: "The model says {value} per share; the market price is {price}."
+  sensitivity_rate:
+    prompt: "Start from the box with the thick border and move one row down, to a higher discount rate. What happens to the value?"
+    why: "It goes from {base} to {higher} at a {rate} discount rate. A higher rate makes future cash worth less today."
+  terminal_share:
+    prompt: "Does more than half of the model's value for {company} come from the years after the forecast ends?"
+    why: "{share} of the value comes from after the forecast. That's typical, and it's why long-term guesses matter so much."
+  sensitivity_majority:
+    prompt: "In how many boxes of the grid is the value above today's price of {price}?"
+    why: "{above} of {total} boxes are above the price. The more boxes agree, the less the answer depends on the exact guesses."
+  implied_vs_actual:
+    prompt: "Is today's price betting on faster or slower growth than {company} delivered last year?"
+    why: "The price assumes about {implied} growth; last year it was {actual}."
+  concepts:
+    revenue:
+      prompt: "A bakery sells 1,000 loaves at $3 each and spends $1,800 on flour and staff. What is its revenue?"
+      options: ["$3,000", "$1,200", "$1,800"]
+      answer: 0
+      why: "Revenue is everything customers paid: 1,000 x $3 = $3,000, before any costs. $1,200 would be what's left after costs."
+    growth:
+      prompt: "Sales were $200M last year and $250M this year. What was the growth?"
+      options: ["25%", "50%", "20%"]
+      answer: 0
+      why: "The increase is $50M, and $50M is 25% of last year's $200M. Growth is always measured against the earlier year."
+    margin:
+      prompt: "A company sells $100 of products and keeps $30 after its costs. What is its margin?"
+      options: ["30%", "70%", "130%"]
+      answer: 0
+      why: "Margin is the share kept: $30 out of $100 is 30%. The 70% is what went to costs."
+    free_cash_flow:
+      prompt: "Which of these does free cash flow tell you?"
+      options: ["The cash the business actually generated after investing in itself", "The profit shown in the accounts", "How much cash the company has in the bank"]
+      answer: 0
+      why: "Free cash flow is cash in from operations minus investment spending. Profit is an accounting figure, and money in the bank is a balance, not a flow."
+    multiple:
+      prompt: "Company A is worth $50B with $10B of sales. Company B is worth $20B with $2B of sales. Which is priced higher relative to its sales?"
+      options: ["Company B", "Company A", "They're the same"]
+      answer: 0
+      why: "A trades at 5x sales ($50B ÷ $10B); B trades at 10x ($20B ÷ $2B). B is smaller but more expensive per dollar of sales."
+    dcf:
+      prompt: "Why is $100 you'll receive in 10 years worth less than $100 today?"
+      options: ["Money today can be invested and earn a return, and the future is uncertain", "Because of taxes", "It isn't: $100 is always $100"]
+      answer: 0
+      why: "Money today can grow, and a promise of future money carries risk. A DCF shrinks future cash for exactly that reason."
+    discount_rate:
+      prompt: "If investors demand a higher return (a higher discount rate), what happens to a DCF value?"
+      options: ["It goes down", "It goes up", "It doesn't change"]
+      answer: 0
+      why: "A higher rate shrinks future cash more when converting it to today's money, so the total value falls."
+    implied_expectations:
+      prompt: "A reverse DCF tells you..."
+      options: ["what growth today's price is betting on", "what the company will grow next year", "whether you should buy the share"]
+      answer: 0
+      why: "It runs the model backwards from the price to the assumptions. It's a forecast hidden in the price, not a prediction or a recommendation."
