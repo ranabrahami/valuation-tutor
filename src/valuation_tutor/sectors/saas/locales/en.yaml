@@ -1,0 +1,181 @@
+# SaaS sector content, English. Core concepts (revenue, margin, DCF...) are in
+# core/locales; only what is specific to software companies lives here.
+name: "US software (SaaS)"
+short_name: "software (SaaS)"
+
+profiles:
+  mature_profitable: "Mature and profitable"
+  growth_profitable: "Growing and profitable"
+  high_growth_unprofitable: "Fast-growing, not yet profitable"
+  maturing: "Maturing"
+
+sources:
+  annual: "{name} annual report (10-K) for the fiscal year ended {period_end}, via SEC EDGAR"
+  annual_derived: "Calculated from {name}'s annual report (10-K) for the fiscal year ended {period_end}: {formula}"
+  calendar: "Calendar-year {year} figure for {name}, blended from the two fiscal years that overlap {year} (10-K data via SEC EDGAR)"
+  market: "Yahoo Finance, {date}"
+  multiple: "{name}'s {label} using its {date} share price and calendar-year {year} figures from its 10-K filings"
+  dcf: "SaaS Valuation Engine DCF for {name}, using the assumptions in its config.yaml, valued as of {date}"
+  regression: "Line fitted through all {n} companies: ln(EV / revenue) against revenue growth, calendar year {year}"
+
+missing:
+  free_cash_flow: "Capital spending isn't in the SEC's standardized data for that year, so free cash flow can't be calculated. It's shown as a gap rather than guessed."
+  generic: "The SEC's standardized data doesn't include this figure for that year."
+  multiple: "Not meaningful: the denominator is negative, or the multiple is above 100x."
+  fair_value: "The cash flows the model projects don't cover the company's debts, so the value per share comes out below zero."
+  implied_growth: "Even 150% growth wouldn't justify today's price under the model's other assumptions."
+
+metrics:
+  revenue:
+    label: "Revenue"
+    definition: "Money received from customers, mostly subscriptions."
+  revenue_growth:
+    label: "Revenue growth"
+    definition: "How much revenue grew compared with the previous year."
+    formula: "Revenue this year ÷ revenue last year − 1"
+  gross_margin:
+    label: "Gross margin"
+    definition: "Share of revenue left after the direct cost of delivering the software (servers, support)."
+    formula: "Gross profit ÷ revenue"
+  operating_margin:
+    label: "Operating margin"
+    definition: "Share of revenue left after all operating costs, including sales, research and stock-based pay."
+    formula: "Operating income ÷ revenue"
+  operating_income:
+    label: "Operating profit"
+    definition: "Revenue minus all the costs of running the business, as the accounting rules count them."
+  free_cash_flow:
+    label: "Free cash flow"
+    definition: "Cash from operations minus spending on equipment and capitalized software."
+    formula: "Operating cash flow − capital spending − capitalized software"
+  sbc_pct_revenue:
+    label: "Stock-based pay as % of revenue"
+    definition: "Employee pay given in shares instead of cash, as a share of revenue."
+    formula: "Stock-based compensation ÷ revenue"
+  price:
+    label: "Share price"
+    definition: "What one share costs on the stock market."
+  ev_revenue:
+    label: "EV / revenue"
+    definition: "Enterprise value divided by a year of revenue: how many dollars investors pay per dollar of yearly sales."
+    formula: "Enterprise value ÷ calendar-year revenue"
+  ev_ebitda:
+    label: "EV / EBITDA"
+    definition: "Enterprise value divided by EBITDA (operating profit before depreciation and amortization)."
+    formula: "Enterprise value ÷ EBITDA"
+  revenue_growth_cy:
+    label: "Revenue growth"
+    definition: "Calendar-year revenue growth, so companies with different fiscal years compare fairly."
+  fcf_margin_cy:
+    label: "Free cash flow margin"
+    definition: "Free cash flow as a share of revenue, calendar year."
+  market_cap:
+    label: "Market value"
+    definition: "Share price times number of shares."
+  enterprise_value:
+    label: "Enterprise value"
+    definition: "Market value plus debt minus cash and short-term investments."
+  dcf_value:
+    label: "DCF value per share"
+    definition: "What one share is worth if the model's forecast of future cash is right."
+  implied_growth:
+    label: "Growth the price assumes"
+    definition: "The first-year revenue growth that makes the DCF value equal today's share price."
+  discount_rate:
+    label: "Discount rate (WACC)"
+    definition: "The yearly return investors demand from this company, used to turn future cash into today's money."
+  terminal_growth:
+    label: "Long-term growth"
+    definition: "The growth rate assumed forever after the forecast years."
+  terminal_share:
+    label: "Share of value after year 10"
+    definition: "How much of the model's value comes from cash after the 10 forecast years."
+  dcf_revenue:
+    label: "Forecast revenue"
+    definition: "Revenue the model projects for that year."
+  dcf_cash_flow:
+    label: "Forecast free cash flow"
+    definition: "Free cash flow (after stock-based pay) the model projects for that year."
+
+charts:
+  revenue_trend:
+    title: "How fast are sales growing?"
+    notes:
+      - "Software companies sell subscriptions: customers pay every month or year, so revenue is usually smooth. A falling year is rarer, and more serious, than for a shop or a carmaker."
+      - "As a rough guide in this group, fast growers add 20-30% a year and mature companies 5-12%."
+  margins:
+    title: "How much of each sale does it keep?"
+    notes:
+      - "Gross margins of 70-80% or more are normal in software: once the product is built, serving one more customer costs very little."
+      - "Operating margins are often low or even negative, because software companies spend heavily on sales, research and pay in shares to grab customers early."
+  profit_vs_cash:
+    title: "Profit on paper vs cash in the bank"
+    notes:
+      - "Two reasons cash often beats profit in software: customers usually pay upfront for a year's subscription, and much of the pay is in shares, which counts as a cost but uses no cash."
+      - "That second reason is why this project treats stock-based pay as a real cost when valuing the company: the shares dilute existing owners."
+  sbc:
+    title: "How much of the pay is in shares?"
+    notes:
+      - "Software companies often pay 10-30% of revenue in stock instead of cash. It's a real cost to shareholders: each new share means existing owners own a slightly smaller slice."
+      - "A falling line means the company is relying less on stock pay as it matures."
+  peers_ev_revenue:
+    title: "How expensive is it next to similar companies?"
+    notes:
+      - "Software companies are mostly compared on revenue, not profit, because many fast growers aren't profitable yet: a profit multiple would be meaningless for them."
+      - "This group is 18 US-listed software companies with subscription business models."
+  peer_fit:
+    title: "Is the price explained by growth?"
+    notes:
+      - "In software, investors pay mainly for growth: faster growers trade at much higher revenue multiples. The line shows that relationship across all 18 companies."
+      - "The line uses a log scale on the vertical axis: each step up multiplies the multiple rather than adding to it."
+  price_vs_value:
+    title: "Price today vs what the model says it's worth"
+    notes:
+      - "The model forecasts 10 years: 5 years based on today's growth and margins, then 5 years in which growth slows toward 3% and cash margins move toward a mature level."
+      - "Pay in shares is treated as a real cost, which lowers values for companies that rely on it heavily."
+  implied_growth:
+    title: "What growth is the price betting on?"
+    notes:
+      - "This keeps every other assumption in the model the same and only changes starting growth until the model's value equals today's price."
+  sensitivity:
+    title: "How much does the answer depend on the assumptions?"
+    notes:
+      - "Software companies get most of their value from cash far in the future, so their values swing more with these two assumptions than a steady utility's would."
+
+concepts:
+  subscription:
+    name: "Subscription revenue"
+    plain: "Customers pay a regular fee (monthly or yearly) to keep using the software, instead of buying it once."
+    analogy: "Like a gym membership rather than buying a treadmill."
+  sbc:
+    name: "Stock-based compensation (pay in shares)"
+    plain: "Paying employees with company shares instead of cash. It doesn't use cash, but it's still a cost: new shares give existing owners a smaller slice of the company."
+    analogy: "Paying the friend who helps at your lemonade stand with a share of the stand instead of cash. Your wallet is fine, but you now own less of the stand."
+  rule_of_40:
+    name: "Rule of 40"
+    plain: "A rule of thumb for software: revenue growth % plus free cash flow margin % should add up to at least 40. It balances growing fast against making money."
+    analogy: "A runner can be fast or have stamina; the rule asks whether speed plus stamina adds up to enough."
+  growth_premium:
+    name: "Paying for growth"
+    plain: "Investors pay higher multiples for faster-growing software companies, because today's sales are a small part of what they expect to earn later."
+    analogy: "A young apple tree costs more than its apples this year suggest, because of all the apples it will grow."
+
+accounting_notes:
+  sbc_expense:
+    title: "Stock-based pay is treated as a cost"
+    text: "Free cash flow in the DCF is after subtracting stock-based compensation, because the shares dilute existing owners. Many analysts add it back; this project doesn't, so its values for heavy stock payers are lower than 'adjusted' figures elsewhere."
+  fiscal_years:
+    title: "Fiscal years differ"
+    text: "Companies end their fiscal year in different months (Salesforce in January, Atlassian in June, most in December). History charts use each company's own fiscal years (FY). Peer comparisons use calendar year 2025 (CY2025), blending two fiscal years by months of overlap."
+  gaap:
+    title: "US GAAP figures"
+    text: "Figures are as reported under US GAAP in 10-K filings, not the 'adjusted' or 'non-GAAP' numbers companies highlight, which usually exclude stock-based pay."
+  free_cash_flow:
+    title: "Free cash flow definition"
+    text: "Free cash flow = operating cash flow − capital spending − capitalized software development. Subtracting capitalized software keeps companies comparable whether they capitalize or expense development."
+  enterprise_value:
+    title: "Enterprise value"
+    text: "Enterprise value = market value + debt − cash − short-term investments, using the latest 10-K balance sheet."
+  data_sources:
+    title: "Data sources"
+    text: "Financials come from SEC EDGAR (XBRL data from 10-K filings). Share prices come from Yahoo Finance. A few values missing from the SEC's standardized data were read from the filings directly and are listed in the engine's config.yaml with their source."
