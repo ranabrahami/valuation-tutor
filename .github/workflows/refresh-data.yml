@@ -1,0 +1,71 @@
+# Weekly data refresh: re-run the valuation engine's pipeline on the latest SEC
+# filings and prices, export a new snapshot, run every test, and commit the
+# snapshot only if the tests pass. Streamlit Cloud redeploys on the push.
+# If anything fails (a test, the SEC, Yahoo Finance), nothing is committed,
+# the app keeps its last good data, and GitHub emails the repo owner.
+name: Refresh data
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"        # Mondays 06:00 UTC
+  workflow_dispatch:            # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: write               # to commit the refreshed snapshot
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the engine version pinned in requirements.txt
+        id: engine
+        run: echo "ref=$(grep -oP 'saas-valuation-engine\.git@\K[0-9a-f]+' requirements.txt)" >> "$GITHUB_OUTPUT"
+
+      # The same engine commit the deployed app uses, so pipeline and app agree.
+      - uses: actions/checkout@v4
+        with:
+          repository: ranabrahami/saas-valuation-engine
+          ref: ${{ steps.engine.outputs.ref }}
+          path: engine
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ./engine -e ".[dev,ai]"
+
+      - name: Run the engine pipeline (SEC EDGAR + market prices)
+        working-directory: engine
+        env:
+          SEC_EDGAR_USER_AGENT: ${{ secrets.SEC_EDGAR_USER_AGENT }}
+        run: |
+          python -m saas_valuation.data.pipeline --refresh
+          python -m saas_valuation.models.comps
+
+      - name: Export the snapshot
+        run: python scripts/export_snapshot.py
+
+      - name: Run every test against the new data
+        run: pytest -q
+
+      - name: Commit the snapshot if it changed
+        run: |
+          git add src/valuation_tutor/sectors/saas/snapshot
+          if git diff --cached --quiet -- src/valuation_tutor/sectors/saas/snapshot/*.csv; then
+            echo "No new data this week."
+            exit 0
+          fi
+          date=$(python -c "import json;print(json.load(open('src/valuation_tutor/sectors/saas/snapshot/manifest.json'))['market_data_date'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh SaaS data snapshot (market data $date)"
+          git push
