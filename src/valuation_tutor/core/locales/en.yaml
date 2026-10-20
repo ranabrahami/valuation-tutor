@@ -1,0 +1,245 @@
+# Core strings, English. Sector content lives in each sector's own locale files.
+# Placeholders in {braces} are filled in by the code; keep them when translating.
+meta:
+  direction: ltr
+  name: English
+
+fmt:
+  missing: "n/a"
+  billion: "B"
+  million: "M"
+  axis_billions: "{symbol} billions"
+  axis_millions: "{symbol} millions"
+
+chart_ui:
+  period: "Year"
+  source: "Source"
+  value: "Value"
+  measure: "Measure"
+  company: "Company"
+  median_label: "median {value}"
+  price_today: "Share price today"
+  model_value: "Value per share from the DCF model"
+  growth_implied: "Growth today's price assumes"
+  growth_actual: "Growth the company actually delivered"
+  line_estimate: "{label} the line predicts"
+  line_source: "Read off the fitted line: {source}"
+  sensitivity_cell: "Value per share at a {rate} discount rate and {growth} terminal growth"
+
+# ---------------------------------------------------------------------------
+# How to read each chart kind. Written for someone who has never read one.
+# ---------------------------------------------------------------------------
+charts:
+  trend:
+    axes: "Each bar is one year of {bar}: the taller the bar, the bigger the number. Years run left to right, oldest first. The small number above each bar is the {growth}: how much bigger (+) or smaller (−) that year was than the year before."
+    look_first: "Look at the overall direction first: are the bars climbing, flat or falling? Then read the numbers above the bars to see whether the climb is speeding up or slowing down."
+    good: "Bars that rise every year. Steady or rising growth numbers on top."
+    worrying: "A bar shorter than the one before it, or growth numbers shrinking quickly toward zero."
+    plain:
+      axes: "Each bar is one year of {bar}: the taller the bar, the bigger the number. Years run left to right, oldest first."
+      look_first: "Look at the overall direction first: are the bars climbing, flat or falling?"
+      good: "Bars that rise steadily year after year."
+      worrying: "Bars that shrink, or jump up and down without a clear direction."
+  margins:
+    axes: "Each line shows a margin: what share of every sale is left over at a certain point. Up means more of each sale is kept. The orange line is {second}, the blue line is {first}."
+    look_first: "Start with the level: how high is each line? Then look at the direction over the years."
+    good: "Lines that are high and stable, or climbing. A company that keeps more of each sale as it grows is getting more efficient."
+    worrying: "Lines heading down, or sitting below zero (the company spends more than it brings in at that level)."
+    single:
+      axes: "The line shows {first}: what share of every sale is left over. Up means more of each sale is kept."
+      look_first: "Start with the level (how high is it?), then the direction over the years."
+      good: "A high, stable or rising line."
+      worrying: "A falling line, or one below zero."
+  profit_vs_cash:
+    axes: "For each year there are two bars: orange is {profit} (what the accounts say the company earned) and blue is {cash} (the cash that actually came in, after paying for investments). Bars below the line mean a loss or a cash outflow."
+    look_first: "Compare the two bars in the most recent year: are they the same size? Profit and cash are often very different, and the gap is the interesting part."
+    good: "Blue bars that are positive and growing: the business generates real cash."
+    worrying: "Blue bars below zero year after year: the company needs outside money to keep running."
+  peers:
+    axes: "Each bar is one company's {value}. The blue bar is {company}; the grey bars are similar companies. The dashed line marks the median: the company in the middle of the pack."
+    look_first: "Find the blue bar. Is it near the top, the middle or the bottom of the group?"
+    good: "There's no 'good' position on its own. A high value is only justified if the company is better in some way (faster growth, higher margins). That's what the next charts test."
+    worrying: "A company priced far above its peers without being clearly better, or far below without a visible reason."
+  peer_fit:
+    axes: "Each dot is a company. Left to right is {x}; bottom to top is {value}. The dashed line shows the typical {value} for each level of {x}. {company} is the blue dot."
+    look_first: "Is the blue dot above or below the dashed line?"
+    good: "Below the line means investors pay less than usual for that much {x}: possibly cheap, or possibly a sign of a problem the line can't see."
+    worrying: "Far above the line: investors are paying a premium the {x} alone doesn't explain."
+  price_vs_value:
+    axes: "The grey bar is what one share costs today on the stock market. The blue bar is what one share is worth according to a DCF model, which adds up all the cash the company is expected to produce in the future, in today's money."
+    look_first: "Compare the two bars: which is longer, and by how much?"
+    good: "There's no good or bad here. A big gap means the market and the model's assumptions disagree. The next question is always: which assumptions?"
+    worrying: "Treating the blue bar as 'the truth'. It's only as good as the guesses about growth and margins inside it."
+  implied_growth:
+    axes: "The blue bar is the yearly sales growth that would make the DCF value equal to today's share price: what investors are betting on. The grey bar is the growth {company} actually delivered last year."
+    look_first: "Compare the two bars. Is the market betting on faster or slower growth than the company is achieving now?"
+    good: "Bars of similar length: the price asks for roughly what the company already delivers."
+    worrying: "A much longer blue bar: the price only makes sense if growth speeds up a lot."
+  sensitivity:
+    axes: "Each box is the DCF value per share under one pair of assumptions: the discount rate (rows) and long-term growth (columns). The box with the thick border uses the model's base assumptions. Blue boxes are above today's share price, red boxes below; the stronger the colour, the bigger the gap."
+    look_first: "Find the bordered box. Then look at how quickly the colours change as you move one row or one column away."
+    good: "Mostly one colour: the conclusion holds even if the assumptions are a little off."
+    worrying: "Colours flipping between neighbouring boxes: the answer depends heavily on guesses nobody can know precisely."
+
+# ---------------------------------------------------------------------------
+# Observations: sentences about one company's chart, filled with its numbers.
+# ---------------------------------------------------------------------------
+obs:
+  missing: "{label} isn't available for {periods}. {note}"
+  trend:
+    range: "{label} went from {first} in {first_period} to {last} in {last_period}."
+    multiplied: "That's about {times} times bigger in {years} years."
+    rose_every_year: "{label} rose every single year."
+    fell_in: "{label} fell in {periods}, compared with the year before."
+    growth_slowed: "Growth slowed from {first} in {first_period} to {last} in {last_period}. Still growing, just less quickly: common as companies get bigger."
+    growth_sped_up: "Growth sped up from {first} in {first_period} to {last} in {last_period}."
+    growth_steady: "Growth held roughly steady: {first} in {first_period} and {last} in {last_period}."
+  margins:
+    up: "{label} rose from {first} in {first_period} to {last} in {last_period}."
+    down: "{label} fell from {first} in {first_period} to {last} in {last_period}."
+    flat: "{label} stayed around {last} ({first} in {first_period})."
+    negative: "{label} is below zero in {period}: at this level the company spent more than it earned."
+    per_hundred: "In {period}, out of every {symbol}100 of sales, {first} was left after the direct costs ({first_label}) and {second} after all operating costs ({second_label})."
+  profit_cash:
+    loss_but_cash: "In {period} the accounts show a loss ({profit_label}: {profit}), yet the business brought in {cash} of cash ({cash_label}). Profit and cash measure different things: some costs in the accounts are never paid in cash, and some cash spending never shows up as a cost."
+    both_negative: "In {period} both are negative: {profit_label} {profit} and {cash_label} {cash}. The company is spending more cash than it brings in."
+    cash_above: "In {period} the business generated more cash ({cash}) than its accounting profit ({profit})."
+    cash_below: "In {period} cash ({cash}) was lower than accounting profit ({profit}): some of the profit hasn't turned into cash yet."
+    cash_every_year: "{cash_label} was positive in every year shown."
+  peers:
+    rank: "{company}'s {label} is {value}: number {rank} of {n}, counting from the highest."
+    rank_top: "{company}'s {label} is {value}: the highest of the {n} companies."
+    rank_bottom: "{company}'s {label} is {value}: the lowest of the {n} companies."
+    above_median: "That's {ratio} times the median company ({median})."
+    below_median: "That's below the median company ({median}): {ratio} times the median."
+    near_median: "That's close to the median company ({median})."
+    missing: "{company} has no meaningful {label}. {note}"
+    left_out: "{count} companies are left out because their {label} isn't meaningful (for example, a multiple of a negative number)."
+  peer_fit:
+    below_line: "Companies with {x_label} like {company}'s ({x}) typically trade around {line}. {company} trades at {actual}: about {gap} below the line."
+    above_line: "Companies with {x_label} like {company}'s ({x}) typically trade around {line}. {company} trades at {actual}: about {gap} above the line."
+    on_line: "Companies with {x_label} like {company}'s ({x}) typically trade around {line}, and {company} trades at {actual}: right on the line."
+    r_squared: "The line explains about {r2} of the differences between these companies. The rest comes from things the line can't see."
+  value:
+    above: "The model values one share at {value}, versus a market price of {price}: the model's value is about {gap} higher."
+    below: "The model values one share at {value}, versus a market price of {price}: the model's value is about {gap} lower."
+    close: "The model's value ({value}) is close to the market price ({price})."
+    negative: "The model can't produce a positive value for {company}. {note}"
+    terminal_share: "{share} of the model's value comes from the years after the forecast ends. The further out the cash, the more it depends on guesses."
+    caution: "A gap between price and model value is a question, not a verdict: it shows where the market's assumptions and the model's assumptions differ."
+  implied:
+    statement: "At today's price of {price}, the model only adds up if sales grow about {implied} in the first year (then slow down gradually). Last year {company} grew {actual}."
+    much_higher: "Investors are betting on much faster growth than {company} delivers today."
+    lower: "Investors are pricing in slower growth than {company} delivers today: they expect it to slow down, or doubt it can last."
+    similar: "The price asks for roughly the growth {company} already delivers."
+    out_of_range: "No growth rate in a sensible range makes the model match today's price for {company}. Last year it grew {actual}. {note}"
+  sensitivity:
+    base: "With the base assumptions (discount rate {rate}, long-term growth {growth}) the value is {value} per share."
+    range: "Across the grid it ranges from {low} to {high}."
+    above_price: "{count} of {total} combinations give a value above today's price of {price}."
+    rate_step: "Raising the discount rate by {points} percentage point (for example from 10% to 11%) changes the value by {change}: small changes in assumptions move the answer a lot."
+
+# ---------------------------------------------------------------------------
+# Universal concepts: written once, used by every sector.
+# ---------------------------------------------------------------------------
+concepts:
+  revenue:
+    name: "Revenue (sales)"
+    plain: "All the money a company receives from customers for what it sells, before paying any costs."
+    analogy: "For a lemonade stand, revenue is every coin in the jar at the end of the day, before you pay for lemons or cups."
+  growth:
+    name: "Growth"
+    plain: "How much bigger something got compared with a year earlier, in percent. 20% growth means this year is 1.2 times last year."
+    analogy: "A child who was 100 cm tall last year and is 110 cm now grew 10%."
+  fiscal_year:
+    name: "Fiscal year"
+    plain: "The 12 months a company uses for its accounts. Many end in December, but some end in January, June or other months, so 'FY2025' doesn't always mean January to December 2025."
+    analogy: "A school year runs September to June: it's still 'a year', just not a calendar one."
+  margin:
+    name: "Margin"
+    plain: "The share of each sale the company keeps after certain costs, in percent. A 30% margin means 30 out of every 100 of sales is left over."
+    analogy: "If a lemonade cup sells for $1 and the lemons and sugar cost $0.40, the margin after ingredients is 60%."
+  gross_margin:
+    name: "Gross margin"
+    plain: "The margin after only the direct cost of delivering the product (for software: servers, support). It shows how profitable each extra sale is."
+    analogy: "The lemonade price minus the lemons, sugar and cup in that glass."
+  operating_margin:
+    name: "Operating margin"
+    plain: "The margin after all the costs of running the business: direct costs plus salaries, marketing, research and offices."
+    analogy: "The lemonade price minus ingredients, the stand's rent, the sign and the friend you pay to help."
+  profit:
+    name: "Profit (operating income)"
+    plain: "What's left of revenue after the costs of running the business, as the accounting rules count it. It can include costs that aren't paid in cash this year."
+    analogy: "What your lemonade stand earned 'on paper' this summer."
+  free_cash_flow:
+    name: "Free cash flow"
+    plain: "The cash a business actually brings in from operations, minus what it spends on investments like equipment. It's money the owners could, in principle, take out."
+    analogy: "What's left in your wallet at the end of the summer after paying every bill and buying a new juicer."
+  share_price:
+    name: "Share price"
+    plain: "What one small piece (share) of the company costs on the stock market today."
+    analogy: "The price of one slice when the whole pizza is the company."
+  market_cap:
+    name: "Market value (market cap)"
+    plain: "The share price times the number of shares: what the stock market says the whole company is worth."
+    analogy: "The price of one slice times the number of slices: the price of the whole pizza."
+  enterprise_value:
+    name: "Enterprise value (EV)"
+    plain: "The market value of the shares, plus the company's debt, minus its cash. It's the price of buying the whole business, debts and all."
+    analogy: "Buying a house: the price includes taking over its mortgage, but you also get the cash someone left in the safe."
+  multiple:
+    name: "Valuation multiple"
+    plain: "A price divided by a measure of the business, like EV ÷ revenue. 'Trades at 5x revenue' means investors pay 5 dollars for every dollar of yearly sales. It lets you compare companies of different sizes."
+    analogy: "Price per square metre lets you compare a small flat and a big house fairly."
+  peer_group:
+    name: "Peer group (comparables)"
+    plain: "A set of similar companies used as a yardstick. A number means more when you can see what's normal for similar businesses."
+    analogy: "To judge if a used car is fairly priced, you look at the same model with similar mileage."
+  median:
+    name: "Median"
+    plain: "The middle value when you line the numbers up from lowest to highest. Unlike an average, one extreme company can't drag it far."
+    analogy: "Line up five friends by height: the median is the third one."
+  dcf:
+    name: "DCF (discounted cash flow)"
+    plain: "A way to value a company by estimating all the cash it will produce in future years, then converting each future dollar into what it's worth today, and adding them up."
+    analogy: "Would you pay $100 today for $100 in ten years? No: you'd pay less. A DCF works out how much less, for every future year of cash."
+  discount_rate:
+    name: "Discount rate"
+    plain: "The yearly return investors demand for waiting and for taking risk. A higher rate makes future cash worth less today, so the value goes down."
+    analogy: "If your money could safely earn 5% a year, a promise of $105 next year is worth about $100 today."
+  terminal_value:
+    name: "Terminal value"
+    plain: "The value of all the cash a company produces after the forecast years end, assuming it then grows slowly forever. It's usually a big part of a DCF."
+    analogy: "Valuing an apple tree: you count this decade's apples one by one, then add one estimate for all the apples after that."
+  sensitivity:
+    name: "Sensitivity analysis"
+    plain: "Recalculating a result with different assumptions to see how much it changes. It shows how much to trust a single number."
+    analogy: "A weather forecast that says '20 to 24 degrees' is more honest than one that says '22'."
+  implied_expectations:
+    name: "What the price implies (reverse DCF)"
+    plain: "Running a DCF backwards: instead of estimating a value, you ask what growth would make today's price fair. It shows what investors are betting on."
+    analogy: "If a house sells for twice the usual price, you ask what the buyer must believe: a new train station nearby?"
+
+app:
+  title: "Read the Numbers"
+  tagline: "Learn to read the charts behind a company's valuation, one chart at a time."
+  sector: "Industry"
+  company: "Company"
+  data_as_of: "Prices as of {date} · financials from {standard} annual reports"
+  not_advice: "For learning only. Nothing here is a recommendation to buy or sell anything."
+  how_to_read: "How to read this chart"
+  axes: "What you're looking at"
+  look_first: "Look at this first"
+  good: "Usually a good sign"
+  worrying: "Usually a warning sign"
+  in_sector: "In {sector}"
+  this_company: "What {company}'s chart shows"
+  terms: "Words on this chart"
+  sources: "Where these numbers come from"
+  unavailable: "There isn't enough data to draw this chart for {company}."
+  explore: "Explore a company"
+  explore_intro: "Pick a company and read its charts. Each chart explains how to read it, what's normal in this industry, and what this company's numbers show."
+  profile: "Type of company"
+  section_story: "The business story"
+  section_peers: "Compared with similar companies"
+  section_value: "What it might be worth"

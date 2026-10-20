@@ -1,0 +1,6 @@
+# Valuation Tutor settings. Learner-facing text lives in the locale files.
+locale: en
+
+# Sector modules to load, as "python.module:ClassName". The first is the default.
+sectors:
+  - valuation_tutor.sectors.saas:SaasSector
