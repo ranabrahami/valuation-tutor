@@ -7,13 +7,29 @@ module plus one line of config; no core code changes.
 from __future__ import annotations
 
 import importlib
+import os
 from pathlib import Path
 
 import yaml
 
 from .sector import SectorModule
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+def _project_root() -> Path:
+    """The folder holding config/tutor.yaml.
+
+    VALUATION_TUTOR_ROOT if set; else the source checkout this package lives in
+    (an editable install); else the working directory (where `streamlit run`
+    starts, e.g. the repo root on Streamlit Cloud).
+    """
+    if os.getenv("VALUATION_TUTOR_ROOT"):
+        return Path(os.environ["VALUATION_TUTOR_ROOT"])
+    checkout = Path(__file__).resolve().parents[3]
+    if (checkout / "config" / "tutor.yaml").exists():
+        return checkout
+    return Path.cwd()
+
+
+PROJECT_ROOT = _project_root()
 CONFIG_PATH = PROJECT_ROOT / "config" / "tutor.yaml"
 
 
