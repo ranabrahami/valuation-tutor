@@ -463,6 +463,10 @@ quiz:
   sensitivity_majority:
     prompt: "In how many boxes of the grid is the value above today's price of {price}?"
     why: "{above} of {total} boxes are above the price. The more boxes agree, the less the answer depends on the exact guesses."
+  sensitivity_closest:
+    prompt: "Stress test: which pair of assumptions makes the model's value closest to today's price of {price}?"
+    option: "Discount rate {rate}, long-term growth {growth}"
+    why: "That box gives {value}, the nearest to the price of {price}. These are roughly the assumptions the market is pricing in."
   implied_vs_actual:
     prompt: "Is today's price betting on faster or slower growth than {company} delivered last year?"
     why: "The price assumes about {implied} growth; last year it was {actual}."

@@ -237,6 +237,35 @@ def sensitivity_majority(ctx: ChartContext):
               ("sensitivity",), (v.price.id,))
 
 
+def sensitivity_closest(ctx: ChartContext):
+    """Stress test: which assumptions make the model agree with today's price?"""
+    v = ctx.data.valuation
+    if v is None:
+        return None
+    s, price = v.sensitivity, v.price.value
+    cells = [(abs(s.values[i][j] / price - 1), i, j) for i in range(len(s.rates)) for j in range(len(s.growths))
+             if s.values[i][j] is not None]
+    if len(cells) < 3:
+        return None
+    cells.sort()
+    best, far = cells[0], cells[-1]
+    mid = cells[len(cells) // 2]
+    if len({(c[1], c[2]) for c in (best, mid, far)}) < 3 or mid[0] - best[0] < 0.05:
+        return None
+    fmt, t = ctx.fmt, ctx.t
+
+    def label(c):
+        return t.t("quiz.sensitivity_closest.option", rate=fmt.pct(s.rates[c[1]], decimals=1),
+                   growth=fmt.pct(s.growths[c[2]], decimals=1))
+
+    options = [label(best), label(mid), label(far)]
+    return _q("sensitivity_closest", ctx, t.t("quiz.sensitivity_closest.prompt", price=fmt.fact(v.price)),
+              options, 0,
+              t.t("quiz.sensitivity_closest.why", value=fmt.per_share(s.values[best[1]][best[2]]),
+                  price=fmt.fact(v.price)),
+              ("sensitivity", "implied_expectations"), (v.price.id,))
+
+
 def sensitivity_rate(ctx: ChartContext):
     v = ctx.data.valuation
     if v is None:
@@ -273,6 +302,7 @@ GENERATORS = {f.__name__: f for f in (trend_peak, trend_growth_direction, trend_
                                        margin_direction,
                                        cash_vs_profit, peer_position, peer_vs_peer, fit_side, value_gap,
                                        terminal_share, sensitivity_rate, sensitivity_majority,
+                                       sensitivity_closest,
                                        implied_vs_actual)}
 # Which generators can run on each chart kind (used by bosses and sector steps).
 BY_KIND = {
@@ -282,7 +312,7 @@ BY_KIND = {
     "peers": ("peer_position", "peer_vs_peer"),
     "peer_fit": ("fit_side",),
     "price_vs_value": ("value_gap", "terminal_share"),
-    "sensitivity": ("sensitivity_rate", "sensitivity_majority"),
+    "sensitivity": ("sensitivity_rate", "sensitivity_majority", "sensitivity_closest"),
     "implied_growth": ("implied_vs_actual",),
 }
 

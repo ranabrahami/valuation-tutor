@@ -4,3 +4,26 @@ locale: en
 # Sector modules to load, as "python.module:ClassName". The first is the default.
 sectors:
   - valuation_tutor.sectors.saas:SaasSector
+
+# AI tutor (milestone 3). Needs ANTHROPIC_API_KEY in .env locally, or in
+# Streamlit secrets when deployed. Without a key the app uses the written
+# explanations everywhere, so it always works.
+tutor:
+  model: claude-sonnet-5-5
+  # Adaptive thinking at low effort: short replies, fast first token. Raise it
+  # if replies are too shallow; it costs more output tokens.
+  effort: low
+  max_tokens: 1500
+  # Bump when prompts change, so cached replies from old prompts aren't reused.
+  prompt_version: 1
+  # USD per million tokens, for estimates and the daily budget. Check current pricing.
+  price_input_per_mtok: 2.0
+  price_output_per_mtok: 10.0
+  price_cache_read_per_mtok: 0.20
+  price_cache_write_per_mtok: 2.50
+  # Hard caps (the owner's key pays for everyone).
+  messages_per_learner_per_day: 30
+  daily_budget_usd: 3.0
+  # Shared reply cache and usage log. SQLite locally; Postgres when deployed (milestone 4).
+  store_path: data/tutor.sqlite
+  max_reply_words: 130
