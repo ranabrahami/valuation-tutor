@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+
+# Secrets (Anthropic key, database URL, OAuth settings)
+.env
+.streamlit/secrets.toml
+
+# Local learner database and tutor cache
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

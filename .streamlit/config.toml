@@ -1,0 +1,15 @@
+[server]
+# Only reachable from this computer when run locally.
+address = "localhost"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "viewer"
+
+[theme]
+# Light only for v1: the chart palette is validated for the light surface.
+base = "light"
+primaryColor = "#2a78d6"
+backgroundColor = "#fcfcfb"
