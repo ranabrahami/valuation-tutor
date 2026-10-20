@@ -354,7 +354,7 @@ game:
   back_to_map: "Back to the map"
   your_turn: "Your turn first"
   observation_placeholder: "Type what you see, in your own words. There are no wrong answers here."
-  show_me: "Show me the explanation"
+  show_me: "Show me"
   skip_observation: "Skip"
   explain: "The explanation"
   check: "Check your understanding"

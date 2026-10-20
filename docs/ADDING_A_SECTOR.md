@@ -19,7 +19,7 @@ Implement `core.sector.SectorModule`:
 | `metrics()` | Each metric's label, unit, plain definition, formula, and the concept it teaches | gross margin → `gross_margin` |
 | `charts()` | Which core chart kinds to show, with roles filled by the sector's metrics, plus sector notes | `trend` with `bar=revenue, growth=revenue_growth` |
 | `concepts()` | Sector-only concepts, ids namespaced `<sector>.<id>`, prerequisites on core concepts | `saas.sbc` |
-| `path_changes()` | Steps to insert, replace or remove in the core learning path (milestone 2) | SBC after margins |
+| `path_changes()` | Steps to insert, replace or remove in the core learning path, each with its lesson text and questions | "Pay in shares" after margins |
 | `teaching_examples()` | The best company to teach each chart or concept with | `profit_vs_cash → DDOG` |
 | `headline_metrics()` | 3-4 metric ids shown as key numbers at the top of a company page | revenue, growth, free cash flow, price |
 | `accounting_notes()` | Context the tutor needs to explain this sector's numbers | "SBC is treated as an expense" |
@@ -41,6 +41,8 @@ Implement `core.sector.SectorModule`:
 ## Checklist
 
 - [ ] `sectors/<id>/adapter.py`, `module.py`, `locales/en.yaml`
+- [ ] A data snapshot for deploying (see `scripts/export_snapshot.py` for SaaS)
+- [ ] Check every chart kind and every path step resolves (the core drops steps a sector has no chart for)
 - [ ] One line in `config/tutor.yaml`
 - [ ] Tests like `tests/test_saas_sector.py`: numbers match the engine, every Fact
       has a source, every chart works for every company, teaching examples hold
