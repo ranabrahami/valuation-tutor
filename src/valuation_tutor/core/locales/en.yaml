@@ -161,7 +161,7 @@ concepts:
     analogy: "If a lemonade cup sells for $1 and the lemons and sugar cost $0.40, the margin after ingredients is 60%."
   gross_margin:
     name: "Gross margin"
-    plain: "The margin after only the direct cost of delivering the product (for software: servers, support). It shows how profitable each extra sale is."
+    plain: "The margin after only the direct cost of what was sold: for a shop, the goods on the shelf; for an app, the servers it runs on. It shows how profitable each extra sale is."
     analogy: "The lemonade price minus the lemons, sugar and cup in that glass."
   operating_margin:
     name: "Operating margin"

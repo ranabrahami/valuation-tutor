@@ -34,7 +34,7 @@ class PeersChart(ChartKind):
     roles_required = ("value",)
 
     def available(self, ctx: ChartContext) -> bool:
-        return len(peer_values(ctx, ctx.chart.roles["value"])) >= 3
+        return len(peer_values(ctx, ctx.chart.roles["value"])) >= 2   # small sectors have few peers
 
     def facts_used(self, ctx: ChartContext) -> list[Fact]:
         return [f for _, _, f in peer_values(ctx, ctx.chart.roles["value"])]
