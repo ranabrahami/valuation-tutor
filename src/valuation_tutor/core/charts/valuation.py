@@ -140,7 +140,8 @@ class SensitivityChart(ChartKind):
         cells = alt.Chart(df).mark_rect(stroke=style.SURFACE, strokeWidth=2, cornerRadius=3).encode(
             x=x, y=y,
             color=alt.Color("vs_price:Q", legend=None,
-                            scale=alt.Scale(domain=[-0.5, 0, 0.5], range=[style.BELOW, style.NEUTRAL, style.ABOVE])),
+                            scale=alt.Scale(domain=[-0.5, 0, 0.5], range=[style.BELOW, style.NEUTRAL, style.ABOVE],
+                                            interpolate="lab")),   # lab: no hue detour via pink
             tooltip=[alt.Tooltip("rate:N", title=s.rate_label), alt.Tooltip("growth:N", title=s.growth_label),
                      alt.Tooltip("shown:N", title=ctx.t.t("chart_ui.value"))])
         base = alt.Chart(df[df["is_base"]]).mark_rect(fill=None, stroke=style.INK, strokeWidth=2.5,

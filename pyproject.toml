@@ -19,7 +19,7 @@ dependencies = [
 # The SaaS sector wraps the saas-valuation-engine project. It is not on PyPI;
 # install it next to this repo with: pip install -e ../saas-valuation-engine
 ai = ["anthropic"]
-dev = ["pytest"]
+dev = ["pytest", "playwright"]  # playwright: browser smoke test, uses local Chrome
 
 [tool.setuptools.packages.find]
 where = ["src"]
