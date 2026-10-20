@@ -146,6 +146,9 @@ class SaasSector:
     def teaching_examples(self) -> dict[str, str]:
         return dict(TEACHING_EXAMPLES)
 
+    def headline_metrics(self) -> list[str]:
+        return ["revenue", "revenue_growth", "free_cash_flow", "price"]
+
     def accounting_notes(self) -> list[Note]:
         return [Note(id=nid, title=n["title"], text=n["text"])
                 for nid, n in self.content["accounting_notes"].items()]

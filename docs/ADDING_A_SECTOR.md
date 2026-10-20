@@ -21,6 +21,7 @@ Implement `core.sector.SectorModule`:
 | `concepts()` | Sector-only concepts, ids namespaced `<sector>.<id>`, prerequisites on core concepts | `saas.sbc` |
 | `path_changes()` | Steps to insert, replace or remove in the core learning path (milestone 2) | SBC after margins |
 | `teaching_examples()` | The best company to teach each chart or concept with | `profit_vs_cash → DDOG` |
+| `headline_metrics()` | 3-4 metric ids shown as key numbers at the top of a company page | revenue, growth, free cash flow, price |
 | `accounting_notes()` | Context the tutor needs to explain this sector's numbers | "SBC is treated as an expense" |
 
 ## Rules

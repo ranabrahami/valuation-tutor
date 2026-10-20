@@ -77,6 +77,9 @@ class FakeSector:
     def teaching_examples(self):
         return {"default": "AAA"}
 
+    def headline_metrics(self):
+        return ["sales", "same_store_sales", "ev_sales"]
+
     def accounting_notes(self):
         return [Note("ifrs16", "IFRS 16", "Store leases are on the balance sheet.")]
 

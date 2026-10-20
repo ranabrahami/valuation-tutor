@@ -28,11 +28,14 @@ def test_app_runs_and_switches_company():
     at = AppTest.from_file(str(APP), default_timeout=120)
     at.run()
     assert not at.exception, at.exception
-    assert at.header[0].value == "HubSpot"
-    at.sidebar.selectbox[1].set_value("DDOG").run()
+    html = lambda: " ".join(e.proto.body for e in at.get("html"))   # noqa: E731
+    assert "<h1>HubSpot</h1>" in html()
+    at.selectbox[1].set_value("DDOG").run()
     assert not at.exception
-    assert at.header[0].value == "Datadog"
-    assert any("loss" in m.value for m in at.markdown)   # DDOG: a loss on paper, cash in the bank
+    assert "<h1>Datadog</h1>" in html()
+    assert "loss" in html()                       # DDOG: a loss on paper, cash in the bank
+    at.segmented_control(key="section").set_value("value").run()
+    assert not at.exception and "price" in html()
 
 
 @pytest.fixture(scope="module")
@@ -70,8 +73,10 @@ def test_page_renders_in_a_real_browser(app_url):
         charts = page.locator('[data-testid="stVegaLiteChart"]').count()
         text = page.locator('[data-testid="stMain"]').inner_text()
         maths = page.locator(".katex").count()
+        icons = page.evaluate("() => getComputedStyle(document.querySelector('.rn-i')).maskImage")
         browser.close()
     assert not errors, errors
-    assert charts == 9
+    assert charts == 4                       # the "business story" section
     assert maths == 0, "a $ amount was rendered as a formula"
     assert "$3.1B in FY2025" in text
+    assert icons.startswith("url(")             # icon CSS survived the HTML sanitizer

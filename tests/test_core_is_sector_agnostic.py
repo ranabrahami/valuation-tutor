@@ -93,3 +93,11 @@ def test_sector_concepts_extend_core_concepts_without_clashing():
     clash = FakeSector().concepts()[0].__class__("growth", "x", "x", sector="fake")
     with pytest.raises(ValueError):
         all_concepts(t, [clash])
+
+
+def test_headline_uses_the_latest_available_value():
+    data = FakeSector().company_data("AAA")
+    facts = data.headline(FakeSector().headline_metrics())
+    assert [f.id for f in facts] == ["AAA.sales.FY2024", "AAA.same_store_sales.2024", "AAA.ev_sales.2024"]
+    bbb = FakeSector().company_data("BBB").headline(["ev_sales"])
+    assert bbb == []    # BBB's multiple is not meaningful: left out rather than shown as n/a

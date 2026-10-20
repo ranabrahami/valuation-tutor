@@ -25,12 +25,14 @@ ABOVE = "#2a78d6"
 NEUTRAL = "#f0efec"
 BELOW = "#e34948"
 
-HEIGHT = 300
+HEIGHT = 340
+FONT = "Inter, system-ui, sans-serif"   # loaded by the app theme
 
 
 def finish(chart: alt.Chart, height: int = HEIGHT) -> alt.Chart:
     """Common chart chrome: recessive grid and axes, no chart border."""
-    return (chart.properties(height=height)
+    return (chart.properties(height=height, background="transparent")
+            .configure(font=FONT)
             .configure_view(strokeWidth=0)
             .configure_axis(gridColor=GRID, domainColor=CONTEXT, tickColor=CONTEXT,
                             labelColor=INK_SECONDARY, titleColor=INK_SECONDARY,

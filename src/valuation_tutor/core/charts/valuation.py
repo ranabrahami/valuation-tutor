@@ -21,14 +21,14 @@ def _bar_pair(ctx: ChartContext, rows: list[tuple[str, Fact, str]]) -> alt.Chart
                         "source": f.source} for label, f, color in rows if not f.missing])
     order = [label for label, _, _ in rows]
     base = alt.Chart(df).encode(y=alt.Y("label:N", sort=order, title=None, axis=alt.Axis(labelLimit=260)))
-    bars = base.mark_bar(cornerRadiusEnd=4, height=34).encode(
+    bars = base.mark_bar(cornerRadiusEnd=4, height=44).encode(
         x=alt.X("value:Q", title=None, axis=alt.Axis(labels=False, ticks=False, grid=False)),
         color=alt.Color("color:N", scale=None),
         tooltip=[alt.Tooltip("label:N", title=" "), alt.Tooltip("shown:N", title=ctx.t.t("chart_ui.value")),
                  alt.Tooltip("source:N", title=ctx.t.t("chart_ui.source"))])
     text = base.mark_text(align="left", dx=8, fontSize=15, fontWeight="bold", color=style.INK).encode(
         x="value:Q", text="shown:N")
-    return style.finish(alt.layer(bars, text), height=130)
+    return style.finish(alt.layer(bars, text), height=190)
 
 
 class PriceVsValueChart(ChartKind):

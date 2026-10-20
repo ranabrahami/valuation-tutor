@@ -163,6 +163,18 @@ class CompanyData:
     peer_fit: PeerFit | None = None
     valuation: Valuation | None = None
 
+    def headline(self, metric_ids: list[str]) -> list[Fact]:
+        """Latest available value of each metric: snapshot first, else most recent history."""
+        out = []
+        for mid in metric_ids:
+            if mid in self.snapshot and not self.snapshot[mid].missing:
+                out.append(self.snapshot[mid])
+            else:
+                latest = [f for f in self.history.get(mid, []) if not f.missing]
+                if latest:
+                    out.append(latest[-1])
+        return out
+
     def facts(self) -> dict[str, Fact]:
         """Every Fact for this company, by id: what the tutor is allowed to cite."""
         out: dict[str, Fact] = {}
@@ -198,4 +210,5 @@ class SectorModule(Protocol):
     def concepts(self) -> list[Concept]: ...
     def path_changes(self) -> list[PathChange]: ...
     def teaching_examples(self) -> dict[str, str]: ...   # concept or chart id -> ticker
+    def headline_metrics(self) -> list[str]: ...          # 3-4 metric ids for the company header
     def accounting_notes(self) -> list[Note]: ...

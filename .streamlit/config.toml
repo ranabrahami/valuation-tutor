@@ -7,9 +7,27 @@ gatherUsageStats = false
 
 [client]
 toolbarMode = "viewer"
+showSidebarNavigation = false
 
+# Design tokens. app/ui.py mirrors these for the custom components; charts use
+# core/charts/style.py (same blue, validated for colour-blind readers).
 [theme]
-# Light only for v1: the chart palette is validated for the light surface.
 base = "light"
 primaryColor = "#2a78d6"
-backgroundColor = "#fcfcfb"
+backgroundColor = "#f6f5f1"            # warm page plane
+secondaryBackgroundColor = "#ffffff"   # cards, inputs
+textColor = "#1d1d1b"
+borderColor = "#e4e2da"
+showWidgetBorder = true
+baseRadius = "0.75rem"
+buttonRadius = "999px"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "Plus Jakarta Sans:https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+headingFontWeights = [800, 700, 700, 650, 600, 600]
+headingFontSizes = ["2.4rem", "1.6rem", "1.25rem"]
+linkColor = "#1f5fae"
+blueColor = "#2a78d6"
+greenColor = "#0ca30c"
+greenTextColor = "#006300"
+orangeColor = "#c27a00"
+redColor = "#d03b3b"
