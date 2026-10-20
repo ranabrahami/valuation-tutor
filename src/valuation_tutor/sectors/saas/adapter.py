@@ -5,6 +5,15 @@ code, and hands back plain tables. module.py turns those into core Facts.
 Nothing here re-implements a valuation: the numbers a learner sees are the
 numbers the engine (and its Excel outputs) produce.
 
+Where the data comes from:
+  * on a machine with the engine's processed data (after its pipeline has
+    run), straight from the engine;
+  * otherwise (e.g. on Streamlit Cloud, which can't run the SEC pipeline)
+    from snapshot/, a dated copy of the engine's config and processed tables
+    made by scripts/export_snapshot.py. The engine's code still does all the
+    valuing in both cases; only its inputs are frozen.
+Set VALUATION_TUTOR_DATA=snapshot to force the snapshot (to test a deploy).
+
 The one formula repeated here is fiscal-year free cash flow for the history
 charts, using the engine's definition (operating cash flow - capex -
 capitalized software). The engine only computes it calendarized; exposing a
@@ -14,15 +23,42 @@ fiscal version from the engine would remove this duplication.
 from __future__ import annotations
 
 import copy
+import json
+import os
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from saas_valuation.config import load_config, project_path
+import yaml
+from saas_valuation.config import CONFIG_PATH, load_config, project_path
 from saas_valuation.models.comps import prepare_fiscal
 from saas_valuation.models.dcf import value_universe
 from saas_valuation.models.ranking import build_ranking
+
+
+SNAPSHOT_DIR = Path(__file__).parent / "snapshot"
+TABLES = ("comps", "ev_bridge", "market_data", "financials")
+
+
+def data_source() -> tuple[dict, Path, str]:
+    """(engine config, folder with the processed tables, "engine" or "snapshot")."""
+    if os.getenv("VALUATION_TUTOR_DATA") != "snapshot" and CONFIG_PATH.exists():
+        cfg = load_config()
+        processed = project_path(cfg["data"]["processed_dir"])
+        if all((processed / f"{t}.csv").exists() for t in TABLES):
+            return cfg, processed, "engine"
+    if not (SNAPSHOT_DIR / "config.yaml").exists():
+        raise FileNotFoundError("No engine data and no snapshot: run the engine's pipeline, "
+                                "then scripts/export_snapshot.py")
+    with open(SNAPSHOT_DIR / "config.yaml") as f:
+        return yaml.safe_load(f), SNAPSHOT_DIR, "snapshot"
+
+
+def snapshot_manifest() -> dict:
+    path = SNAPSHOT_DIR / "manifest.json"
+    return json.loads(path.read_text()) if path.exists() else {}
 
 
 @dataclass
@@ -35,6 +71,7 @@ class EngineOutput:
     dcf_results: dict            # ticker -> {"projection", "sensitivity", ...}
     regression: dict
     valuation_date: date
+    source: str = "engine"       # "engine" or "snapshot"
 
 
 def _ratio(num: pd.Series, den: pd.Series) -> pd.Series:
@@ -57,8 +94,8 @@ def fiscal_history(financials: pd.DataFrame, subtract_capitalized_software: bool
 
 
 def load_engine(cfg: dict | None = None) -> EngineOutput:
-    cfg = copy.deepcopy(cfg or load_config())
-    processed = project_path(cfg["data"]["processed_dir"])
+    source_cfg, processed, source = data_source()
+    cfg = copy.deepcopy(cfg or source_cfg)
     comps, bridge, market = (pd.read_csv(processed / f"{name}.csv", index_col="ticker")
                              for name in ("comps", "ev_bridge", "market_data"))
     financials = pd.read_csv(processed / "financials.csv")
@@ -72,7 +109,8 @@ def load_engine(cfg: dict | None = None) -> EngineOutput:
     ranked = build_ranking(comps, bridge, market, summary, cfg)
     history = fiscal_history(financials, cfg["comps"]["fcf_subtract_capitalized_software"])
     return EngineOutput(cfg=cfg, history=history, comps=comps, market=market, dcf_summary=summary,
-                        dcf_results=results, regression=ranked["regression"], valuation_date=valuation_date)
+                        dcf_results=results, regression=ranked["regression"], valuation_date=valuation_date,
+                        source=source)
 
 
 def clean(value) -> float | None:

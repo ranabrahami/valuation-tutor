@@ -1,0 +1,257 @@
+# =============================================================================
+# SaaS Valuation Engine — central configuration
+# -----------------------------------------------------------------------------
+# Every assumption the model uses lives here. Nothing is hard-coded in src/.
+# Sections marked (Stage N) are not used by any code yet; values are starting
+# points to be reviewed when that stage is built.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Universe: 18 US-listed SaaS companies, all US-GAAP 10-K filers.
+# Grouped by profile so the comps/DCF stages compare unlike businesses.
+# -----------------------------------------------------------------------------
+universe:
+  mature_profitable:
+    - ADBE   # Adobe
+    - CRM    # Salesforce
+    - VEEV   # Veeva Systems
+    - PAYC   # Paycom
+    - PCTY   # Paylocity
+  growth_profitable:
+    - NOW    # ServiceNow
+    - WDAY   # Workday
+    - TEAM   # Atlassian
+  high_growth_unprofitable:
+    - DDOG   # Datadog
+    - SNOW   # Snowflake
+    - MDB    # MongoDB
+    - CRWD   # CrowdStrike
+    - ZS     # Zscaler
+    - OKTA   # Okta
+  maturing:
+    - HUBS   # HubSpot
+    - TWLO   # Twilio
+    - DOCU   # DocuSign
+    - ZM     # Zoom
+
+# -----------------------------------------------------------------------------
+# Data pipeline (Stage 2)
+# -----------------------------------------------------------------------------
+data:
+  # SEC requires a descriptive User-Agent with a contact email on every
+  # request. Set SEC_EDGAR_USER_AGENT in your .env file (never commit it).
+  user_agent_env_var: SEC_EDGAR_USER_AGENT
+  years_of_history: 5
+  raw_dir: data/raw
+  processed_dir: data/processed
+  # SEC fair-access policy caps traffic at 10 requests/second.
+  max_requests_per_second: 8
+  # Re-download filings data only if the cached copy is older than this.
+  # Annual 10-K data changes rarely, so a week is plenty.
+  sec_cache_max_age_days: 7
+  # Prices move every day, so market data is refreshed more often.
+  market_data_max_age_hours: 24
+  # A fact counts as a "full fiscal year" if its period spans this many days.
+  # 350-380 accepts 52/53-week fiscal years but rejects quarters (~90 days)
+  # and odd transition periods when a company changes its year-end.
+  annual_period_days:
+    min: 350
+    max: 380
+  # Flag when two share-count sources disagree by more than this. Applies to
+  # yfinance vs market-cap-implied, SEC cover page vs implied, and current vs
+  # last 10-K (buybacks/issuance explain small gaps; splits show up as ~2x, 4x).
+  share_count_tolerance: 0.15
+
+# -----------------------------------------------------------------------------
+# Stock splits
+# -----------------------------------------------------------------------------
+# Splits are pulled automatically from yfinance; add any it misses here.
+# Share counts filed BEFORE a split are multiplied by its ratio, so every year
+# is on today's share basis. financials.csv keeps both the as-reported and the
+# split-adjusted count, and the Excel output lists every split explicitly.
+stock_splits:
+  manual: []
+  # - {ticker: XYZ, date: 2026-06-15, ratio: 4, source: "8-K filed 2026-05-20"}
+
+# -----------------------------------------------------------------------------
+# Manual overrides for numbers the SEC dataset can't provide
+# -----------------------------------------------------------------------------
+# Lines a company files under its own custom XBRL tags never reach the SEC's
+# standardized dataset, so they have to be read from the 10-K by hand.
+#   * Enter values in USD MILLIONS. Each statement says "in thousands" or
+#     "in millions" at the top; convert accordingly.
+#   * Enter capex and cost of revenue as positive numbers.
+#   * Leave value_usd_millions null until filled. Null entries are ignored and
+#     the affected metric shows "n/a" in the comps.
+#   * Values below were read from each filing's full XBRL (which keeps the
+#     company-specific tags) and cross-checked against statement totals.
+# Only gaps that affect the CY2025 comps are listed. Older gaps (Okta and
+# Zscaler D&A for FY2022-23) only matter for history and can be added later.
+overrides:
+  # Veeva: the investing section has only 3 cash lines (securities bought,
+  # securities sold, PaymentsForSoftware) and they sum exactly to the reported
+  # total (FY2026: -3,133.1 + 2,057.8 - 29.1 = -1,104.4). So there is no separate
+  # PP&E capex; the software line is already captured as capitalized_software.
+  - {ticker: VEEV, fiscal_year: 2025, concept: capex, value_usd_millions: 0,
+     source: "Veeva 10-K 0001393052-26-000014, cash flow statement: no PP&E purchase line; investing section reconciles to -700.1"}
+  - {ticker: VEEV, fiscal_year: 2026, concept: capex, value_usd_millions: 0,
+     source: "Veeva 10-K 0001393052-26-000014, cash flow statement: no PP&E purchase line; investing section reconciles to -1,104.4"}
+  # Workday: reports cost of subscription and professional services separately,
+  # with no total. Sum of the two = total opex - R&D - S&M - G&A - restructuring.
+  - {ticker: WDAY, fiscal_year: 2025, concept: cost_of_revenue, value_usd_millions: 2069,
+     source: "Workday 10-K 0001327811-26-000014, income statement: subscription 1,266 + professional services 803"}
+  - {ticker: WDAY, fiscal_year: 2026, concept: cost_of_revenue, value_usd_millions: 2321,
+     source: "Workday 10-K 0001327811-26-000014, income statement: subscription 1,531 + professional services 790"}
+  # CrowdStrike: D&A = depreciation (custom tag) + amortization of intangibles.
+  # Excludes amortization of deferred contract acquisition costs (sales commissions).
+  - {ticker: CRWD, fiscal_year: 2025, concept: depreciation_amortization, value_usd_millions: 214.0,
+     source: "CrowdStrike 10-K 0001535527-26-000010, cash flow statement: depreciation 188.0 + intangibles amortization 26.0"}
+  - {ticker: CRWD, fiscal_year: 2026, concept: depreciation_amortization, value_usd_millions: 281.4,
+     source: "CrowdStrike 10-K 0001535527-26-000010, cash flow statement: depreciation 250.2 + intangibles amortization 31.2"}
+
+# -----------------------------------------------------------------------------
+# Comps analysis (Stage 3)
+# -----------------------------------------------------------------------------
+comps:
+  # Fiscal years end in different months (Salesforce: January, Atlassian:
+  # June, Zscaler: July). To compare like with like, flow metrics are
+  # "calendarized": blended from the two fiscal years that overlap this
+  # calendar year, weighted by months of overlap.
+  calendar_year: 2025
+
+  # GAAP EBITDA = operating income + D&A. Much of Wall Street also adds back
+  # stock-based comp ("Adjusted EBITDA"), which flatters SaaS companies where
+  # SBC is 15-35% of revenue. Set true to follow that convention.
+  ebitda_add_back_sbc: false
+
+  # Capitalized software development is cash spent much like capex.
+  # Subtracting it keeps FCF comparable between companies that capitalize
+  # development costs and those that expense them.
+  fcf_subtract_capitalized_software: true
+
+  # Treat short-term investments (Treasuries, commercial paper) like cash
+  # when bridging from market cap to enterprise value.
+  ev_net_short_term_investments: true
+
+  # Margin used in the Rule of 40 (revenue growth % + margin %).
+  # Options: fcf_margin (most common for SaaS), fcf_margin_after_sbc, ebitda_margin
+  rule_of_40_margin: fcf_margin
+
+  # Multiples above this are shown as "NM" (not meaningful): a 400x EV/EBITDA
+  # says more about near-zero EBITDA than about valuation.
+  max_meaningful_multiple: 100
+
+  output_dir: outputs
+
+# -----------------------------------------------------------------------------
+# DCF assumptions (Stage 4)
+# -----------------------------------------------------------------------------
+dcf:
+  # Two-stage model, starting from comps.calendar_year's calendarized revenue
+  # and margins:
+  #   explicit years (CY2026-2030): the core forecast
+  #   fade years (CY2031-2035):     growth glides down to the terminal rate
+  # A 5-year model that forces growth to 3% by year 5 values every company as
+  # a mature business by 2030 and erases the premium for high growth. The fade
+  # period lets a company growing 29% today still grow ~16% in year 5.
+  projection_years: 5
+  fade_years: 5
+
+  # The model values the company as of Jan 1 of the first projection year,
+  # then rolls that value forward to this date at the cost of equity (value
+  # grows at investors' required return as time passes). null = today.
+  valuation_date: null
+
+  # --- Discount rate: WACC, with the cost of equity from CAPM ---
+  # cost of equity = risk_free_rate + beta x equity_risk_premium
+  # WACC = E/(D+E) x cost of equity + D/(D+E) x cost of debt x (1 - tax rate)
+  risk_free_rate: 0.043          # ~10-year US Treasury yield; update before running
+  equity_risk_premium: 0.055     # long-run US ERP (Damodaran-style estimate)
+  default_beta: 1.2              # fallback only if a company's beta is unavailable
+  # Raw betas from price regressions are noisy and drift toward 1.0 over time.
+  # The Blume adjustment (2/3 x raw + 1/3 x 1.0) is what Bloomberg reports as
+  # "adjusted beta" and what most bank models use.
+  blume_adjust_beta: true
+  pre_tax_cost_of_debt: 0.06
+  tax_rate: 0.21                 # US federal statutory rate
+
+  # --- Cash flow projection ---
+  # Stock-based comp is employee pay, just paid in shares. "expense" subtracts
+  # it from free cash flow. "ignore" leaves it added back, which overstates
+  # value per share unless the extra future shares are modelled separately.
+  sbc_treatment: expense
+
+  # Revenue growth fades in a straight line from the company's latest
+  # calendar-year growth to terminal_growth_rate in the last fade year.
+  # Starting growth is capped here so one hot year doesn't dominate.
+  max_starting_growth: 0.40
+
+  # FCF margin (after SBC if sbc_treatment is "expense") moves in a straight
+  # line from today's level to this target by the last fade year, when the
+  # company is mature. Companies already above it keep their current margin.
+  target_fcf_margin: 0.25
+
+  # Per-company overrides for any of: starting_growth, target_fcf_margin, beta.
+  # Use these to express a view, e.g. "Snowflake keeps growing faster".
+  company_overrides: {}
+  #   SNOW: {starting_growth: 0.25, target_fcf_margin: 0.30}
+
+  # --- Terminal value (Gordon growth) ---
+  # TV = FCF in the final year x (1 + g) / (WACC - g). g must stay below WACC,
+  # and shouldn't exceed long-run nominal GDP growth (~2-3%), or the company
+  # would eventually be "bigger than the economy".
+  terminal_growth_rate: 0.03
+
+  # Sensitivity table ranges (WACC x terminal growth)
+  sensitivity:
+    wacc_range: [-0.02, -0.01, 0.0, 0.01, 0.02]       # added to base WACC
+    terminal_growth_range: [0.02, 0.025, 0.03, 0.035, 0.04]
+
+# -----------------------------------------------------------------------------
+# AI risk summaries (Stage 7, optional; needs ANTHROPIC_API_KEY in .env)
+# -----------------------------------------------------------------------------
+# Claude reads Item 1A (Risk Factors) of each company's latest 10-K and returns
+# structured JSON: top risks, and a specific read on AI disruption risk.
+ai_risk:
+  model: claude-opus-5-5
+  # How much the model reasons before answering (low / medium / high / xhigh /
+  # max). Reading ~30 pages and ranking risks is moderate work; medium is
+  # the model's own default.
+  effort: medium
+  max_tokens: 16000
+  top_risks: 5
+  # USD per million tokens, used only for the cost estimate and report.
+  # Check current pricing before relying on these.
+  price_input_per_mtok: 4.0
+  price_output_per_mtok: 20.0
+  # Rough output allowance per company for the up-front estimate (answer +
+  # reasoning tokens); the run reports actual usage.
+  estimated_output_tokens: 6000
+
+# -----------------------------------------------------------------------------
+# Ranking weights (Stage 5)
+# -----------------------------------------------------------------------------
+ranking:
+  # Each signal is turned into a percentile rank (0-100) within the universe
+  # before weighting, so one extreme result (e.g. a -85% DCF) can't swamp the other.
+  dcf_upside_weight: 0.5
+  comps_weight: 0.5
+
+  # Comps signal: a high-growth company *should* trade at a higher multiple,
+  # so the raw multiple isn't a fair comparison. Instead, ln(EV/Revenue) is
+  # regressed on this metric across the universe; a company trading below its
+  # predicted ("fair") multiple is cheap for its fundamentals.
+  # Options: revenue_growth, rule_of_40. Revenue growth is the default because
+  # it fits best: on CY2025 data it explains 53% of the variation in multiples
+  # (R²), vs 29% for Rule of 40 and ~1% for FCF margin. The market is paying
+  # for growth, not margin, so Rule of 40 makes high-margin names look cheap.
+  # The ranking workbook shows this comparison each run.
+  comps_regressor: revenue_growth
+  # Each company's fair multiple comes from a line fitted on the OTHER companies
+  # (leave-one-out), so an outlier can't pull the line toward its own price.
+  leave_one_out: true
+
+  # Verdict labels from the final score. Relative to peers, not absolute:
+  # "undervalued" means cheaper than the rest of this universe.
+  undervalued_above: 67
+  overvalued_below: 33

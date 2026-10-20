@@ -1,0 +1,11 @@
+{
+  "exported_at": "2026-10-20T16:23:57+00:00",
+  "engine_commit": "14dc041",
+  "market_data_date": "2026-10-18",
+  "tables": [
+    "comps",
+    "ev_bridge",
+    "market_data",
+    "financials"
+  ]
+}

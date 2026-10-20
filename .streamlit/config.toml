@@ -1,7 +1,3 @@
-[server]
-# Only reachable from this computer when run locally.
-address = "localhost"
-
 [browser]
 gatherUsageStats = false
 

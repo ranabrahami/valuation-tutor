@@ -28,7 +28,7 @@ dev = ["pytest", "playwright"]  # playwright: browser smoke test, uses local Chr
 where = ["src"]
 
 [tool.setuptools.package-data]
-"*" = ["*.yaml", "*.md"]
+"*" = ["*.yaml", "*.md", "*.csv", "*.json"]   # locale files and the SaaS data snapshot
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

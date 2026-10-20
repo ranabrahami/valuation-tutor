@@ -1,0 +1,5 @@
+# Streamlit Community Cloud installs from this file (Python 3.12).
+# The valuation engine, pinned to a commit so the deployed numbers can't change underneath.
+saas-valuation-engine @ git+https://github.com/ranabrahami/saas-valuation-engine.git@14dc041
+# This app, with the AI tutor.
+.[ai]
