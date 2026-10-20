@@ -18,6 +18,7 @@ XP_CORRECT_FIRST_TRY = 20
 XP_CORRECT_AFTER_RETRY = 10
 XP_OBSERVATION = 5
 XP_BOSS_PASSED = 50
+XP_PER_PITCH_POINT = 10          # final boss: the tutor scores the pitch 0-4
 
 # --- Ranks: one promotion per boss beaten -----------------------------------
 RANKS = ["intern", "analyst", "associate", "vp", "director", "md"]

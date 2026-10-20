@@ -3,6 +3,7 @@
 import pandas as pd
 import shared
 import streamlit as st
+import tutor_ui
 import ui
 
 from valuation_tutor.core.explain import ExplainedChart
@@ -14,10 +15,10 @@ SECTIONS = {
 }
 
 
-def chart_card(e: ExplainedChart, t, explainer, sector, company_name: str, key: str) -> None:
+def chart_card(e: ExplainedChart, t, explainer, sector, company_name: str, key: str, data) -> None:
     cid = e.chart.id
     with st.container(key=f"card_{key}_{cid}"):
-        head = st.columns([6, 1.7, 1.3], vertical_alignment="center")
+        head = st.columns([5, 1.7, 1.7, 1.3], vertical_alignment="center")
         head[0].subheader(e.chart.title, anchor=False)
         if not e.available:
             st.info(t.t("app.unavailable", company=company_name), icon=":material/info:")
@@ -26,7 +27,10 @@ def chart_card(e: ExplainedChart, t, explainer, sector, company_name: str, key: 
         with head[1].popover(t.t("app.how_to_read_short"), icon=":material/menu_book:", width="stretch"):
             st.html(ui.guide([("eye", t.t("app.axes"), g.axes), ("spark", t.t("app.look_first"), g.look_first),
                               ("check", t.t("app.good"), g.good), ("alert", t.t("app.worrying"), g.worrying)]))
-        with head[2].popover(t.t("app.sources_short"), icon=":material/link:", width="stretch"):
+        with head[2].popover(t.t("tutor.ask_short"), icon=":material/forum:", width="stretch"):
+            st.html(f'<div class="rn-prompt">{t.t("tutor.ask_title")}</div>')
+            tutor_ui.ask_box(f"explore_{key}_{cid}", tutor_ui.chart_context(data, cid))
+        with head[3].popover(t.t("app.sources_short"), icon=":material/link:", width="stretch"):
             fmt = explainer.fmt
             st.dataframe(pd.DataFrame([{t.t("app.col_number"): f.label, t.t("app.col_period"): f.period,
                                         t.t("app.col_value"): fmt.fact(f),
@@ -77,6 +81,6 @@ def render() -> None:
     st.html(f'<p class="rn-section-intro">{t.t(intro_key, company=ref.name)}</p>')
     for chart_id in chart_ids:
         if chart_id in explainer.charts:
-            chart_card(explainer.explain(data, chart_id), t, explainer, sector, ref.name, ticker)
+            chart_card(explainer.explain(data, chart_id), t, explainer, sector, ref.name, ticker, data)
     ui.footer(t.t("app.data_as_of", date=sector.data_as_of, standard=sector.accounting_standard)
               + " · " + t.t("app.not_advice"))

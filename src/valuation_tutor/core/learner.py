@@ -37,6 +37,7 @@ class StepRecord:
     completed: bool = False
     stars: int = 0
     observation: str = ""            # what the learner wrote before seeing the explanation
+    own_words: bool | None = None    # the tutor's verdict on it; None = no tutor, use the word count
 
 
 @dataclass
@@ -139,9 +140,17 @@ class Learner:
             return game.XP_OBSERVATION
         return 0
 
+    def judge_observation(self, step_id: str, credit: bool) -> None:
+        """The tutor read the observation and decided whether it earns the "own words" star."""
+        self.step(step_id).own_words = credit
+
+    def award(self, xp: int) -> None:
+        self.xp += max(0, xp)
+
     def complete_step(self, step_id: str, right_first_time: bool, today: date | None = None) -> int:
         rec = self.step(step_id)
-        stars = game.stars_for(True, right_first_time, game.counts_as_own_words(rec.observation))
+        own = rec.own_words if rec.own_words is not None else game.counts_as_own_words(rec.observation)
+        stars = game.stars_for(True, right_first_time, own)
         rec.completed, rec.stars = True, max(rec.stars, stars)
         self.touch(today)
         return stars

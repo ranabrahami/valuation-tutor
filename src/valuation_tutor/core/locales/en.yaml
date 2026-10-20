@@ -511,3 +511,36 @@ quiz:
       options: ["what growth today's price is betting on", "what the company will grow next year", "whether you should buy the share"]
       answer: 0
       why: "It runs the model backwards from the price to the assumptions. It's a forecast hidden in the price, not a prediction or a recommendation."
+
+tutor:
+  name: "Your tutor"
+  reading: "Your tutor is reading what you wrote..."
+  thinking: "Your tutor is thinking..."
+  ask_title: "Ask your tutor about this chart"
+  ask_short: "Ask the tutor"
+  ask_placeholder: "For example: why is the cash bar bigger than the profit bar?"
+  ask: "Ask"
+  sources: "Where these numbers come from"
+  switched_off: "The AI tutor is switched off here, so you're seeing the written explanations."
+  reasons:
+    learner_cap: "You've used today's tutor messages. The written explanations are here, and the tutor is back tomorrow."
+    budget: "The tutor has reached today's budget. The written explanations are here instead."
+    refused: "The tutor couldn't answer that one. Try asking about what's on the chart."
+    ungrounded: "The tutor couldn't answer using only the numbers on screen, so you're seeing the written explanation instead."
+    error: "The tutor couldn't be reached just now. Here's the written explanation."
+  verdict:
+    spot_on: "Spot on"
+    partly: "Good start"
+    off_track: "Let's look again"
+    not_about_chart: "Try describing the chart"
+  pitch_title: "The pitch"
+  pitch_intro: "One last step: explain this mystery company to a friend in 3-4 sentences. Cover its growth, its cash, how it's priced, and what the price seems to assume. No buy or sell calls: just what the numbers say."
+  pitch_placeholder: "This company is growing... It generates... Compared with similar companies... Today's price seems to assume..."
+  pitch_submit: "Send my pitch"
+  pitch_skip: "Skip the pitch"
+  pitch_score: "Pitch score: {score} of 4"
+  pitch_points:
+    growth: "Growth"
+    cash: "Cash"
+    peers_or_value: "Price vs peers or value"
+    market_belief: "What the price assumes"

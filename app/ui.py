@@ -201,6 +201,22 @@ CSS = f"""
 .rn-title {{ font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -.02em;
   margin: .1rem 0 .3rem; color: {TOKENS['ink']}; line-height: 1.15; }}
 
+/* Tutor */
+.rn-tutor {{ display: flex; gap: .8rem; margin: .4rem 0 .8rem; }}
+.rn-tutor-avatar {{ width: 2.2rem; height: 2.2rem; border-radius: .8rem; flex: none; display: grid; place-items: center;
+  color: white; background: linear-gradient(135deg, {TOKENS['accent']} 0%, #5b5bd6 100%); }}
+.rn-tutor-body {{ flex: 1; background: {TOKENS['card']}; border: 1px solid {TOKENS['line']}; border-radius: .3rem 1rem 1rem 1rem;
+  padding: .75rem 1rem; font-size: .96rem; line-height: 1.55; color: {TOKENS['ink']}; }}
+.rn-tutor-body .who {{ font-size: .78rem; font-weight: 700; color: {TOKENS['accent_ink']}; text-transform: uppercase;
+  letter-spacing: .04em; display: block; margin-bottom: .2rem; }}
+.rn-tutor-body sup {{ font-size: .68rem; font-weight: 700; color: {TOKENS['accent_ink']}; background: {TOKENS['accent_soft']};
+  border-radius: 999px; padding: 0 .3rem; margin-left: .1rem; cursor: help; }}
+.rn-tutor-src {{ margin-top: .55rem; padding-top: .5rem; border-top: 1px solid {TOKENS['line']}; font-size: .78rem;
+  color: {TOKENS['muted']}; display: grid; gap: .15rem; }}
+.rn-me {{ display: flex; justify-content: flex-end; margin: .4rem 0; }}
+.rn-me span {{ background: {TOKENS['accent_soft']}; color: {TOKENS['ink']}; border-radius: 1rem 1rem .3rem 1rem;
+  padding: .55rem .9rem; font-size: .94rem; max-width: 80%; line-height: 1.5; }}
+
 /* Card header buttons (popovers) as quiet pills */
 [class*="st-key-card"] [data-testid="stPopover"] button {{ border-color: {TOKENS['line']}; font-size: .85rem;
   padding: .2rem .8rem; min-height: 2rem; }}
@@ -330,6 +346,26 @@ def celebrate(icon_name: str, title: str, sub: str, chips: list[str] = ()) -> st
     gains = "".join(f'<span class="rn-stat">{escape(c)}</span>' for c in chips)
     return (f'<div class="rn-celebrate"><div class="rn-big">{icon(icon_name, 34)}</div><h2>{escape(title)}</h2>'
             f'<p>{escape(sub)}</p><div class="rn-gain">{gains}</div></div>')
+
+
+def tutor_reply(who: str, text: str, sources: list, fmt: Formatter, sources_label: str) -> str:
+    """A tutor message; [F3]-style tags become numbered markers with the source underneath."""
+    import re
+    numbers = {tag: i for i, (tag, _) in enumerate(sources, 1)}
+    body = escape(text)
+    body = re.sub(r"\[(F\d+)\]", lambda m: (f'<sup title="{escape(dict(sources)[m.group(1)].source)}">'
+                                             f'{numbers[m.group(1)]}</sup>' if m.group(1) in numbers else ""), body)
+    src = ""
+    if sources:
+        src = f'<div class="rn-tutor-src"><b>{escape(sources_label)}</b>' + "".join(
+            f'<span>{i}. {escape(f.label)}, {escape(f.period)}: {escape(fmt.fact(f))} · {escape(f.source)}</span>'
+            for i, (_, f) in enumerate(sources, 1)) + "</div>"
+    return (f'<div class="rn-tutor"><div class="rn-tutor-avatar">{icon("spark", 18)}</div>'
+            f'<div class="rn-tutor-body"><span class="who">{escape(who)}</span>{body}{src}</div></div>')
+
+
+def my_message(text: str) -> str:
+    return f'<div class="rn-me"><span>{escape(text)}</span></div>'
 
 
 def footer(text: str) -> None:

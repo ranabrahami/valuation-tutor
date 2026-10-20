@@ -100,3 +100,15 @@ def context_for(explainer, data, chart_id: str, learner: Learner | None = None, 
     return TutorContext(sector=explainer.sector, company=data.ref.name, chart_title=e.chart.title, guide=e.guide,
                         sector_notes=e.sector_notes, observations=e.observations, facts=e.facts, concepts=e.terms,
                         lesson=dict(lesson or {}), learner=learner, language=language)
+
+
+def context_for_company(explainer, data, chart_ids: list[str], learner: Learner | None = None,
+                        language: str = "English") -> TutorContext:
+    """Several charts' worth of context for one company (used to grade the final pitch)."""
+    parts = [explainer.explain(data, cid) for cid in chart_ids if cid in explainer.charts]
+    parts = [e for e in parts if e.available]
+    return TutorContext(
+        sector=explainer.sector, company=data.ref.name, chart_title=", ".join(e.chart.title for e in parts),
+        guide=parts[0].guide, sector_notes=tuple(n for e in parts for n in e.sector_notes),
+        observations=[o for e in parts for o in e.observations], facts=[f for e in parts for f in e.facts],
+        concepts=list({c.id: c for e in parts for c in e.terms}.values()), learner=learner, language=language)

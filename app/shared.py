@@ -75,3 +75,53 @@ def learner() -> Learner:
 def sector_id() -> str:
     b = load()
     return st.session_state.setdefault("sector", next(iter(b.sectors)))
+
+
+# ---------------------------------------------------------------------------
+# The AI tutor (optional: without a key the app uses the written explanations)
+# ---------------------------------------------------------------------------
+
+def _api_key() -> str | None:
+    import os
+
+    from dotenv import load_dotenv
+    from valuation_tutor.core.registry import PROJECT_ROOT
+    load_dotenv(PROJECT_ROOT / ".env")
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return os.environ["ANTHROPIC_API_KEY"]
+    try:
+        return st.secrets.get("ANTHROPIC_API_KEY")
+    except Exception:              # no secrets file: running locally without a key
+        return None
+
+
+@st.cache_resource(show_spinner=False)
+def tutors() -> dict:
+    """One Tutor per sector (each formats numbers in its own currency), or {} without a key."""
+    key = _api_key()
+    if not key:
+        return {}
+    import anthropic
+
+    from valuation_tutor.core.registry import PROJECT_ROOT
+    from valuation_tutor.core.tutor import Tutor
+    from valuation_tutor.core.tutor.store import SQLiteStore
+    b = load()
+    cfg = b.settings["tutor"]
+    client = anthropic.Anthropic(api_key=key)
+    store = SQLiteStore(PROJECT_ROOT / cfg["store_path"])
+    language = b.t.get("meta.name") or "English"
+    return {sid: Tutor(client, cfg, store, b.explainers[sid].fmt, language) for sid in b.sectors}
+
+
+def tutor(sector_id: str):
+    # Tests put a Tutor backed by a fake client here, so the UI can be tested without a key.
+    if "tutor_override" in st.session_state:
+        return st.session_state.tutor_override
+    return tutors().get(sector_id)
+
+
+def learner_id() -> str:
+    """Anonymous per-session id for the daily caps (a hashed account id from milestone 4)."""
+    import uuid
+    return st.session_state.setdefault("learner_id", uuid.uuid4().hex)

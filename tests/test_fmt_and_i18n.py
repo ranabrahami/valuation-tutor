@@ -57,3 +57,13 @@ def test_guides_have_all_four_parts_for_every_kind_and_variant():
 
 def test_placeholders_helper():
     assert placeholders("{company} grew {value}") == {"company", "value"}
+
+
+def test_no_yaml_boolean_traps_in_keys():
+    """YAML reads bare yes/no/on/off keys as booleans, which silently loses the string."""
+    def walk(node):
+        for k, v in node.items():
+            assert isinstance(k, str), f"key {k!r} was parsed as {type(k).__name__}; quote it"
+            if isinstance(v, dict):
+                walk(v)
+    walk(yaml.safe_load((LOCALES_DIR / "en.yaml").read_text()))

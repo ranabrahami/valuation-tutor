@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import shared
 import streamlit as st
+import tutor_ui
 import ui
 
 from valuation_tutor.core import game
 from valuation_tutor.core.path import Step
 from valuation_tutor.core.quiz import mask
+from valuation_tutor.core.tutor.context import context_for_company
 
 PHASES = ["game.your_turn", "game.explain", "game.check", "game.level_complete"]
 
@@ -124,10 +126,32 @@ def map_view() -> None:
 # Level player
 # ---------------------------------------------------------------------------
 
-def reexplain(style: str, concepts: tuple[str, ...], chart_id: str | None, company: str) -> None:
-    """Explain the same idea in a different way: plain words, analogy, another company, or its foundation."""
+def reexplain(style: str, concepts: tuple[str, ...], chart_id: str | None, company: str,
+              question=None, chosen: str | None = None, memo: dict | None = None) -> None:
+    """Explain the same idea in a different way: plain words, analogy, another company, or its foundation.
+
+    With the tutor: it writes the explanation in that style for this chart (cached and shared).
+    Without it, or if it can't help: the written version below.
+    """
     b, sid = shared.load(), shared.sector_id()
     t, ex = b.t, b.explainers[sid]
+    tutor = shared.tutor(sid)
+    if tutor and chart_id and question is not None and memo is not None:
+        key = f"{question.variant}:{style}:{chosen}"
+        if key not in memo:
+            ctx = tutor_ui.chart_context(shared.company_data(sid, company), chart_id)
+            with st.spinner(t.t("tutor.thinking")):
+                reply, reason = tutor_ui.call(tutor.reexplain, ctx, style, question.prompt, list(question.options),
+                                              chosen, shared.learner_id())
+            memo[key] = ({"text": reply.text, "tags": [tg for tg, _ in reply.sources]} if reply
+                         else {"reason": reason})
+        got = memo[key]
+        if "text" in got:
+            ctx = tutor_ui.chart_context(shared.company_data(sid, company), chart_id)
+            st.html(tutor_ui.reply_html(ctx, got["text"], got["tags"],
+                                        f"{t.t('tutor.name')} · {t.t(f'game.style_{style}').lower()}"))
+            return
+        st.html(tutor_ui.reason_note(got["reason"]))
     c = ex.concepts.get(concepts[0])
     title = t.t(f"game.style_{style}")
     if style == "other_company" and chart_id:
@@ -205,6 +229,18 @@ def step_player(a: dict) -> None:
                 go = st.columns(2)
                 if go[0].button(t.t("game.show_me"), type="primary", key="show_me", width="stretch"):
                     a["obs_xp"] = lr.write_observation(step.id, note or "")
+                    tutor = shared.tutor(sid)
+                    if tutor and e and len((note or "").split()) >= 2:
+                        with st.spinner(t.t("tutor.reading")):
+                            reply, reason = tutor_ui.call(tutor.review_observation,
+                                                          tutor_ui.chart_context(data, step.chart_id, text),
+                                                          note, shared.learner_id())
+                        if reply:
+                            lr.judge_observation(step.id, bool(reply.data.get("credit_own_words")))
+                            a["tutor_obs"] = {"text": reply.text, "tags": [tg for tg, _ in reply.sources],
+                                              "verdict": reply.data.get("verdict", "partly")}
+                        else:
+                            a["tutor_note"] = reason
                     a["phase"] = 1
                     _rerun()
                 if go[1].button(t.t("game.skip_observation"), key="skip_obs", width="stretch"):
@@ -223,9 +259,18 @@ def step_player(a: dict) -> None:
                 cols = st.columns([7, 5], gap="large")
                 cols[0].altair_chart(e.figure, width="stretch", theme=None)
                 mine = lr.step(step.id).observation
-                cols[1].html(ui.look_first(t.t("app.look_first"), e.guide.look_first)
-                             + (ui.feedback("info", t.t("game.your_turn"), mine) if mine else "")
-                             + ui.observations(t.t("app.this_company", company=data.ref.name), e.observations))
+                with cols[1]:
+                    if mine:
+                        st.html(ui.my_message(mine))
+                    if a.get("tutor_obs"):
+                        r = a["tutor_obs"]
+                        who = f"{t.t('tutor.name')} · {t.t('tutor.verdict.' + r['verdict'])}"
+                        st.html(tutor_ui.reply_html(tutor_ui.chart_context(data, step.chart_id, text), r["text"],
+                                                    r["tags"], who))
+                    elif a.get("tutor_note"):
+                        st.html(tutor_ui.reason_note(a["tutor_note"]))
+                    st.html(ui.look_first(t.t("app.look_first"), e.guide.look_first)
+                            + ui.observations(t.t("app.this_company", company=data.ref.name), e.observations))
                 st.html(ui.sector_notes(t.t("app.in_sector", sector=sector.name), e.sector_notes))
             else:
                 st.html(ui.lead(text.get("intro", "")))
@@ -234,6 +279,9 @@ def step_player(a: dict) -> None:
                 st.html(f'<div class="rn-eyebrow">{t.t("game.new_term")}</div>' + ui.term(c.name, c.plain, c.analogy))
             if text.get("takeaway"):
                 st.html(ui.takeaway(t.t("game.takeaway"), text["takeaway"]))
+            if e and shared.tutor(sid):
+                st.html(f'<div class="rn-eyebrow" style="margin-top:1rem">{t.t("tutor.ask_title")}</div>')
+                tutor_ui.ask_box(f"{step.id}_{company}", tutor_ui.chart_context(data, step.chart_id, text))
             if st.button(t.t("game.check"), type="primary", icon=":material/quiz:", key="to_check"):
                 a["phase"] = 2
                 _rerun()
@@ -260,6 +308,7 @@ def step_player(a: dict) -> None:
                     if row[0].button(t.t("game.submit"), type="primary", disabled=choice is None, key="submit",
                                      width="stretch"):
                         correct = choice == q.answer
+                        a["chosen"] = q.options[choice]
                         out = lr.answer(q.concepts, correct, q.variant, first_try=a["tries"] == 0)
                         a["answered"], a["style"] = correct, out.next_style
                         a["all_first"] &= correct and a["tries"] == 0
@@ -272,7 +321,7 @@ def step_player(a: dict) -> None:
                             a["hidden"].append(next(i for i in visible if i != q.answer))
                         _rerun()
                     if row[2].button(t.t("game.dont_get_it"), icon=":material/help:", key="lost", width="stretch"):
-                        a["style"] = lr.struggle(q.concepts)
+                        a["style"], a["chosen"] = lr.struggle(q.concepts), None
                         _rerun()
                     if lr.hints == 0 and len(visible) > 2:
                         st.caption(t.t("game.no_hints"))
@@ -282,7 +331,8 @@ def step_player(a: dict) -> None:
                     reveal = a["tries"] >= 1
                     st.html(ui.feedback("warn", t.t("game.not_quite"), q.why if reveal else ""))
             if a["style"] and not a["answered"]:
-                reexplain(a["style"], q.concepts, q.chart_id, company)
+                reexplain(a["style"], q.concepts, q.chart_id or step.chart_id, q.ticker or company, q,
+                          a.get("chosen"), a.setdefault("reexplained", {}))
             nav = st.columns([2, 5])
             if a["answered"] or (a["answered"] is False and a["tries"] >= 1):
                 last = a["q"] + 1 >= len(qs)
@@ -382,10 +432,41 @@ def boss_player(a: dict) -> None:
                     if st.button(t.t("game.finish_level") if last else t.t("game.next_question"), type="primary",
                                  key="boss_next"):
                         if last:
-                            a["phase"] = "result"
+                            final = any(s.capstone for s in stage.steps)
+                            a["phase"] = "pitch" if final and shared.tutor(sid) else "result"
                         else:
                             a.update(q=a["q"] + 1, answered=None)
                         _rerun()
+        return
+
+    if a["phase"] == "pitch":
+        pitch_charts = [c for c in ("revenue_trend", "profit_vs_cash", "peers_ev_revenue", "price_vs_value",
+                                    "implied_growth") if c in ex.charts] or list(ex.charts)
+        with st.container(key="card_pitch"):
+            cols = st.columns([7, 5], gap="large")
+            with cols[0]:
+                ui.company_header(mystery.ref, mystery.headline(b.sectors[sid].headline_metrics()), ex.fmt)
+            with cols[1]:
+                st.html(ui.prompt(t.t("tutor.pitch_title")) + ui.lead(t.t("tutor.pitch_intro")))
+                pitch = st.text_area(t.t("tutor.pitch_title"), key=f"pitch_{a['attempt']}", height=170,
+                                     placeholder=t.t("tutor.pitch_placeholder"), label_visibility="collapsed")
+                row = st.columns(2)
+                if row[0].button(t.t("tutor.pitch_submit"), type="primary", key="pitch_go", width="stretch",
+                                 disabled=len((pitch or "").split()) < 8):
+                    ctx = context_for_company(ex, mystery, pitch_charts, lr, tutor_ui.language())
+                    with st.spinner(t.t("tutor.reading")):
+                        reply, reason = tutor_ui.call(shared.tutor(sid).grade_pitch, ctx, pitch, shared.learner_id())
+                    if reply:
+                        lr.award(reply.data["score"] * game.XP_PER_PITCH_POINT)
+                        a["pitch"] = {"text": reply.text, "tags": [tg for tg, _ in reply.sources],
+                                      "data": reply.data, "charts": pitch_charts}
+                    else:
+                        a["pitch"] = {"reason": reason}
+                    a["phase"] = "result"
+                    _rerun()
+                if row[1].button(t.t("tutor.pitch_skip"), key="pitch_skip", width="stretch"):
+                    a["phase"] = "result"
+                    _rerun()
         return
 
     if a["result"] is None:
@@ -401,6 +482,18 @@ def boss_player(a: dict) -> None:
             st.html(ui.celebrate("trophy" if promoted else "check", title, t.t("game.boss_passed"), chips))
         else:
             st.html(ui.celebrate("shield", t.t("game.boss_failed"), t.t("game.boss_retry"), chips))
+        if a.get("pitch"):
+            p = a["pitch"]
+            if "text" in p:
+                points = "".join(f'<span class="rn-badge{"" if p["data"].get(k) else " off"}">'
+                                 f'{t.t("tutor.pitch_points." + k)}</span>'
+                                 for k in ("growth", "cash", "peers_or_value", "market_belief"))
+                st.html(f'<div class="rn-eyebrow">{t.t("tutor.pitch_score", score=p["data"]["score"])}</div>'
+                        f'<div class="rn-badges" style="margin-bottom:.6rem">{points}</div>')
+                ctx = context_for_company(ex, mystery, p["charts"], lr, tutor_ui.language())
+                st.html(tutor_ui.reply_html(ctx, p["text"], p["tags"]))
+            else:
+                st.html(tutor_ui.reason_note(p["reason"]))
         row = st.columns([1, 2, 2, 1])
         if not a["result"] and row[1].button(t.t("game.try_again"), type="primary", key="boss_again", width="stretch"):
             start_boss(stage.id)

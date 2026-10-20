@@ -86,3 +86,13 @@ def test_round_trips_through_a_dict():
     l.write_observation("growth", "growth numbers are getting smaller each year")
     l.finish_boss("story", 3)
     assert Learner.from_dict(l.to_dict()) == l
+
+
+def test_tutor_verdict_overrides_the_word_count_for_the_third_star():
+    l = Learner()
+    l.write_observation("revenue", "the bars are blue and there are five of them")   # long but off the point
+    l.judge_observation("revenue", False)
+    assert l.complete_step("revenue", right_first_time=True) == 2
+    l.write_observation("growth", "slower")                                           # short but right
+    l.judge_observation("growth", True)
+    assert l.complete_step("growth", right_first_time=True) == 3
