@@ -17,9 +17,14 @@ def test_snapshot_is_used_when_forced(monkeypatch):
 
 
 def test_snapshot_matches_the_engine(monkeypatch):
+    """Same inputs, same numbers. (Differing dates just mean one side was refreshed more recently.)"""
     if data_source()[2] != "engine":
         pytest.skip("engine data not available to compare")
-    live = SaasSector().company_data("HUBS")
+    live_sector = SaasSector()
+    if live_sector.data_as_of != snapshot_manifest()["market_data_date"]:
+        pytest.skip(f"engine data ({live_sector.data_as_of}) and snapshot "
+                    f"({snapshot_manifest()['market_data_date']}) are from different days")
+    live = live_sector.company_data("HUBS")
     monkeypatch.setenv("VALUATION_TUTOR_DATA", "snapshot")
     frozen = SaasSector().company_data("HUBS")
     assert frozen.valuation.fair_value.value == pytest.approx(live.valuation.fair_value.value)
