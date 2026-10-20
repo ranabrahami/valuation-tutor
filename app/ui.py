@@ -154,6 +154,9 @@ CSS = f"""
   border-radius: 999px; background: #fff7e0; color: #7a4d00; font-size: .85rem; font-weight: 600; }}
 .rn-badge .rn-i {{ background-color: #c27a00; }}
 .rn-badge.off {{ background: {TOKENS['neutral_soft']}; color: {TOKENS['muted']}; }}
+.rn-badge.learning {{ background: {TOKENS['accent_soft']}; color: {TOKENS['accent_ink']}; }}
+.rn-badge.learning .rn-i {{ background-color: {TOKENS['accent']}; }}
+.st-key-account_bar {{ position: fixed; top: .55rem; right: 4rem; z-index: 999990; width: 15rem !important; }}
 .rn-badge.off .rn-i {{ background-color: {TOKENS['muted']}; }}
 .rn-stage-head {{ display: flex; align-items: center; gap: .8rem; }}
 .rn-stage-num {{ font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: {TOKENS['accent_ink']}; }}

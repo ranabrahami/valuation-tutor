@@ -24,6 +24,8 @@ tutor:
   # Hard caps (the owner's key pays for everyone).
   messages_per_learner_per_day: 30
   daily_budget_usd: 3.0
-  # Shared reply cache and usage log. SQLite locally; Postgres when deployed (milestone 4).
-  store_path: data/tutor.sqlite
   max_reply_words: 130
+
+# Where progress, the tutor cache and usage are saved. Overridden by DATABASE_URL
+# (environment or Streamlit secrets), e.g. a Supabase Postgres URL when deployed.
+database_url: sqlite:///data/app.sqlite

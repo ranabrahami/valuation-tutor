@@ -6,6 +6,9 @@ saves it to a database for signed-in learners).
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 from dataclasses import dataclass
 
 import streamlit as st
@@ -15,8 +18,9 @@ from valuation_tutor.core.i18n import Translator
 from valuation_tutor.core.learner import Learner
 from valuation_tutor.core.path import LearningPath
 from valuation_tutor.core.quiz import QuizMaker
-from valuation_tutor.core.registry import load_sectors, load_settings
+from valuation_tutor.core.registry import PROJECT_ROOT, load_sectors, load_settings
 from valuation_tutor.core.sector import CompanyData, SectorModule
+from valuation_tutor.core.storage import SQLStore
 
 
 @dataclass
@@ -67,9 +71,29 @@ def boss_questions(sector_id: str, stage_id: str, attempt: int):
 
 
 def learner() -> Learner:
+    """This session's learner. Signed in: loaded from the database (guest progress merged in)."""
+    acct = account()
+    if acct and st.session_state.get("learner_owner") != acct["id"]:
+        saved = store().load_learner(acct["id"])
+        mine = Learner.from_dict(saved) if saved else Learner()
+        if "learner" in st.session_state and st.session_state.get("learner_owner") is None:
+            mine.merge(st.session_state.learner)            # what they did as a guest isn't lost
+        st.session_state.learner, st.session_state.learner_owner = mine, acct["id"]
     if "learner" not in st.session_state:
-        st.session_state.learner = Learner()
+        st.session_state.learner, st.session_state.learner_owner = Learner(), None
     return st.session_state.learner
+
+
+def save_progress() -> None:
+    """Called after every run; writes only when something changed."""
+    acct = account()
+    if not acct or "learner" not in st.session_state:
+        return
+    data = st.session_state.learner.to_dict()
+    digest = hash(json.dumps(data, sort_keys=True))
+    if st.session_state.get("saved_digest") != digest:
+        store().save_learner(acct["id"], data)
+        st.session_state.saved_digest = digest
 
 
 def sector_id() -> str:
@@ -81,18 +105,54 @@ def sector_id() -> str:
 # The AI tutor (optional: without a key the app uses the written explanations)
 # ---------------------------------------------------------------------------
 
-def _api_key() -> str | None:
-    import os
-
+def secret(name: str) -> str | None:
+    """From the environment (or .env) first, then Streamlit secrets (how the deployed app gets them)."""
     from dotenv import load_dotenv
-    from valuation_tutor.core.registry import PROJECT_ROOT
     load_dotenv(PROJECT_ROOT / ".env")
-    if os.getenv("ANTHROPIC_API_KEY"):
-        return os.environ["ANTHROPIC_API_KEY"]
+    if os.getenv(name):
+        return os.environ[name]
     try:
-        return st.secrets.get("ANTHROPIC_API_KEY")
-    except Exception:              # no secrets file: running locally without a key
+        value = st.secrets.get(name)
+    except Exception:              # no secrets file: running locally
         return None
+    return str(value) if value else None
+
+
+@st.cache_resource(show_spinner=False)
+def store() -> SQLStore:
+    url = secret("DATABASE_URL") or load().settings["database_url"]
+    if url.startswith("sqlite:///") and not url.startswith("sqlite:////"):
+        url = f"sqlite:///{PROJECT_ROOT / url.removeprefix('sqlite:///')}"   # relative to the project
+        (PROJECT_ROOT / "data").mkdir(exist_ok=True)
+    return SQLStore(url)
+
+
+def auth_configured() -> bool:
+    try:
+        return "auth" in st.secrets
+    except Exception:
+        return False
+
+
+def account() -> dict | None:
+    """{"id": opaque key, "name": first name} for a signed-in learner, else None.
+
+    The key is a salted hash of the provider's subject id: the database never
+    holds an email address or anything that identifies the person directly.
+    """
+    if not auth_configured() or not st.user.is_logged_in:
+        return None
+    return account_from(dict(st.user), secret("USER_ID_SALT") or "local-development-salt")
+
+
+def account_from(user: dict, salt: str) -> dict:
+    subject = f"{user.get('iss', '')}|{user.get('sub') or user.get('email')}"
+    return {"id": hashlib.sha256(f"{salt}|{subject}".encode()).hexdigest(),
+            "name": user.get("given_name") or user.get("name") or ""}
+
+
+def _api_key() -> str | None:
+    return secret("ANTHROPIC_API_KEY")
 
 
 @st.cache_resource(show_spinner=False)
@@ -103,15 +163,11 @@ def tutors() -> dict:
         return {}
     import anthropic
 
-    from valuation_tutor.core.registry import PROJECT_ROOT
     from valuation_tutor.core.tutor import Tutor
-    from valuation_tutor.core.tutor.store import SQLiteStore
     b = load()
-    cfg = b.settings["tutor"]
     client = anthropic.Anthropic(api_key=key)
-    store = SQLiteStore(PROJECT_ROOT / cfg["store_path"])
     language = b.t.get("meta.name") or "English"
-    return {sid: Tutor(client, cfg, store, b.explainers[sid].fmt, language) for sid in b.sectors}
+    return {sid: Tutor(client, b.settings["tutor"], store(), b.explainers[sid].fmt, language) for sid in b.sectors}
 
 
 def tutor(sector_id: str):
@@ -122,6 +178,7 @@ def tutor(sector_id: str):
 
 
 def learner_id() -> str:
-    """Anonymous per-session id for the daily caps (a hashed account id from milestone 4)."""
+    """Who the tutor's daily cap applies to: the account if signed in, else this session."""
     import uuid
-    return st.session_state.setdefault("learner_id", uuid.uuid4().hex)
+    acct = account()
+    return acct["id"] if acct else st.session_state.setdefault("learner_id", uuid.uuid4().hex)
