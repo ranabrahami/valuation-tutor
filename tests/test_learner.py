@@ -55,11 +55,10 @@ def test_badges_follow_mastery():
     assert "cash_detective" in out.new_badges and "cash_detective" in l.badges
 
 
-def test_bosses_promote_and_give_hints_once():
+def test_bosses_give_hints_once():
     l = Learner()
-    assert l.rank == "intern"
     assert not l.finish_boss("story", 1)
-    assert l.finish_boss("story", 2) and l.rank == "analyst"
+    assert l.finish_boss("story", 2) and l.boss("story").passed
     assert l.hints == game.STARTING_HINTS + game.HINTS_PER_BOSS
     l.finish_boss("story", 3)                                 # replaying doesn't pay out again
     assert l.hints == game.STARTING_HINTS + game.HINTS_PER_BOSS and l.boss("story").best == 3
@@ -96,3 +95,16 @@ def test_tutor_verdict_overrides_the_word_count_for_the_third_star():
     l.write_observation("growth", "slower")                                           # short but right
     l.judge_observation("growth", True)
     assert l.complete_step("growth", right_first_time=True) == 3
+
+
+def test_merge_keeps_the_best_of_both():
+    account, guest = Learner(), Learner()
+    account.complete_step("saas:revenue", True)
+    account.answer(["growth"], True, "a", True)
+    guest.complete_step("saas:growth", True)
+    guest.answer(["growth"], True, "b", True)
+    guest.concept("margin").mastered = True
+    guest.badges = ["margin_reader"]
+    account.merge(guest)
+    assert account.step("saas:revenue").completed and account.step("saas:growth").completed
+    assert account.mastered("margin") and "margin_reader" in account.badges

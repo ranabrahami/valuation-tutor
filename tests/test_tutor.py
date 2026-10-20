@@ -14,7 +14,8 @@ from valuation_tutor.core.learner import Learner
 from valuation_tutor.core.registry import load_settings
 from valuation_tutor.core.tutor import Tutor, Unavailable, cost, grounding
 from valuation_tutor.core.tutor.context import context_for, sector_block
-from valuation_tutor.core.tutor.store import MemoryStore, SQLiteStore
+from valuation_tutor.core.storage import SQLStore
+from valuation_tutor.core.tutor.store import MemoryStore
 
 CFG = load_settings()["tutor"]
 
@@ -193,8 +194,8 @@ def test_grounding_check(reply, ok):
     assert grounding.check(reply, tags, ["Gross margins of 70-80% are normal."]).ok is ok
 
 
-def test_sqlite_store(tmp_path):
-    store = SQLiteStore(tmp_path / "t.sqlite")
+def test_sql_store_tutor_tables(tmp_path):
+    store = SQLStore(f"sqlite:///{tmp_path / 't.sqlite'}")
     store.put("k", {"reply": "hi"})
     assert store.get("k") == {"reply": "hi"} and store.get("missing") is None
     store.record("a", 0.01, date(2026, 10, 1)); store.record("a", 0.02, date(2026, 10, 1))

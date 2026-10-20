@@ -12,8 +12,10 @@ dependencies = [
     "numpy",
     "pyyaml",
     "altair",
-    "streamlit>=1.66",
+    "streamlit[auth]>=1.66",      # [auth]: Authlib, for "Sign in with Google"
     "python-dotenv",
+    "sqlalchemy>=2",              # one storage layer for SQLite (local) and Postgres (deployed)
+    "psycopg[binary]>=3",         # Postgres driver
 ]
 
 [project.optional-dependencies]

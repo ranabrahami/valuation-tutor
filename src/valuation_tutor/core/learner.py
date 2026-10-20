@@ -176,14 +176,6 @@ class Learner:
         self.touch(today)
         return score >= game.BOSS_PASS_MARK
 
-    @property
-    def bosses_passed(self) -> int:
-        return sum(b.passed for b in self.bosses.values())
-
-    @property
-    def rank(self) -> str:
-        return game.rank_for(self.bosses_passed)
-
     def use_hint(self) -> bool:
         if self.hints <= 0:
             return False
@@ -206,6 +198,30 @@ class Learner:
         else:
             self.streak_days = 1
         self.last_active = today.isoformat()
+
+    # -- merging (guest progress into an account) ---------------------------------
+
+    def merge(self, other: Learner) -> None:
+        """Keep the best of both: used when a guest signs in to an account that already has progress."""
+        for cid, o in other.concepts.items():
+            c = self.concept(cid)
+            for f in ("seen", "attempts", "correct", "struggles"):
+                setattr(c, f, max(getattr(c, f), getattr(o, f)))
+            c.mastered = c.mastered or o.mastered
+            c.styles_tried = list(dict.fromkeys(c.styles_tried + o.styles_tried))
+        for sid, o in other.steps.items():
+            r = self.step(sid)
+            r.completed, r.stars = r.completed or o.completed, max(r.stars, o.stars)
+            r.observation = r.observation or o.observation
+            r.own_words = r.own_words if r.own_words is not None else o.own_words
+        for bid, o in other.bosses.items():
+            r = self.boss(bid)
+            r.passed, r.best, r.attempts = r.passed or o.passed, max(r.best, o.best), max(r.attempts, o.attempts)
+        self.xp = max(self.xp, other.xp)
+        self.hints = max(self.hints, other.hints)
+        self.badges = list(dict.fromkeys(self.badges + other.badges))
+        self.streak_days = max(self.streak_days, other.streak_days)
+        self.last_active = max(filter(None, [self.last_active, other.last_active]), default=None)
 
     # -- saving -----------------------------------------------------------------
 

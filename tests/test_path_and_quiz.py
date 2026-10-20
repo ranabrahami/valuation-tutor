@@ -32,9 +32,10 @@ def test_unlocking_order():
     assert path.step_unlocked(l, first) and not path.step_unlocked(l, second)
     assert not path.boss_unlocked(l, story) and not path.stage_unlocked(l, business)
     for s in story.steps:
-        l.complete_step(s.id, True)
+        l.complete_step(path.key(s.id), True)
     assert path.boss_unlocked(l, story) and path.next_up(l) == ("boss", "story")
-    l.finish_boss("story", 3)
+    l.finish_boss(path.key("story"), 3)
+    assert path.rank(l) == "analyst"
     assert path.stage_unlocked(l, business) and path.next_up(l) == ("step", business.steps[0].id)
 
 
@@ -115,3 +116,13 @@ def test_every_saas_boss_builds_and_varies(saas_setup):
 def test_every_generator_is_used_somewhere():
     from valuation_tutor.core.quiz import BY_KIND
     assert {g for gens in BY_KIND.values() for g in gens} == set(GENERATORS)
+
+
+def test_level_progress_is_per_sector_but_mastery_carries_over():
+    fake = LearningPath(FakeSector())
+    l = Learner()
+    l.complete_step("saas:revenue", True)                 # done in another sector
+    l.concept("revenue").mastered = l.concept("fiscal_year").mastered = True
+    step = fake.step("revenue")
+    assert not fake.record(l, step).completed             # not done here...
+    assert fake.skippable(l, step)                        # ...but can be skipped: mastery carries over

@@ -40,7 +40,7 @@ def test_tutor_reads_the_observation_and_awards_the_star():
     assert not at.exception, at.exception
     page = html(at)
     assert "Spot on" in page and "the bars rise every year" in page and "<sup" in page   # source marker
-    assert at.session_state["learner"].step("revenue").own_words is True
+    assert at.session_state["learner"].step("saas:revenue").own_words is True
     assert "bars go up" in client.calls[0]["messages"][0]["content"][1]["text"]
 
 
@@ -69,4 +69,4 @@ def test_when_the_tutor_cannot_help_the_learner_sees_a_note_not_an_error():
     at.button(key="show_me").click().run()
     assert not at.exception, at.exception
     assert "only the numbers on screen" in html(at)
-    assert at.session_state["learner"].step("revenue").own_words is None   # falls back to the word count
+    assert at.session_state["learner"].step("saas:revenue").own_words is None   # falls back to the word count

@@ -34,10 +34,15 @@ def start_step(step_id: str) -> None:
                                  "xp0": shared.learner().xp, "mastered": [], "badges": [], "seen": False}
 
 
+def path_stage(path, stage_id: str):
+    return next(s for s in path.stages if s.id == stage_id)
+
+
 def start_boss(stage_id: str) -> None:
     lr = shared.learner()
-    st.session_state.activity = {"type": "boss", "stage": stage_id, "attempt": lr.boss(stage_id).attempts,
-                                 "phase": "intro", "q": 0, "score": 0, "answered": None, "rank0": lr.rank,
+    path = shared.load().paths[shared.sector_id()]
+    st.session_state.activity = {"type": "boss", "stage": stage_id, "attempt": path.boss_record(lr, path_stage(path, stage_id)).attempts,
+                                 "phase": "intro", "q": 0, "score": 0, "answered": None, "rank0": path.rank(lr),
                                  "xp0": lr.xp, "result": None}
 
 
@@ -60,9 +65,10 @@ def map_view() -> None:
 
     top = st.columns([3, 2], gap="medium")
     with top[0].container(key="card_rank"):
-        nxt = game.RANKS[min(lr.bosses_passed + 1, len(game.RANKS) - 1)]
-        sub = t.t("game.top_rank") if lr.rank == game.RANKS[-1] else t.t("game.next_rank", rank=t.t(f"ranks.{nxt}"))
-        st.html(ui.rank_card(t.t("game.rank_label"), t.t(f"ranks.{lr.rank}"), sub, len(path.stages), lr.bosses_passed))
+        passed, rank = path.bosses_passed(lr), path.rank(lr)
+        nxt = game.RANKS[min(passed + 1, len(game.RANKS) - 1)]
+        sub = t.t("game.top_rank") if rank == game.RANKS[-1] else t.t("game.next_rank", rank=t.t(f"ranks.{nxt}"))
+        st.html(ui.rank_card(t.t("game.rank_label"), t.t(f"ranks.{rank}"), sub, len(path.stages), passed))
         st.html(ui.badges([(t.t(f"badges.{bid}.name"), t.t(f"badges.{bid}.text"), bid in lr.badges)
                            for bid in game.BADGES]))
     with top[1].container(key="card_next"):
@@ -90,14 +96,14 @@ def map_view() -> None:
     for i, stage in enumerate(path.stages, 1):
         unlocked = path.stage_unlocked(lr, stage)
         with st.container(key=f"card_stage_{stage.id}"):
-            status = (t.t("game.stage_done") if lr.boss(stage.id).passed else
+            status = (t.t("game.stage_done") if path.boss_record(lr, stage).passed else
                       "" if unlocked else t.t("game.locked"))
             st.html(ui.stage_head(f"{t.t('game.stage', n=i)} · {t.t(f'ranks.{stage.rank}')}"
                                   + (f" · {status}" if status else ""),
                                   t.t(f"stages.{stage.id}.title"), t.t(f"stages.{stage.id}.subtitle")))
             cols = st.columns(len(stage.steps) + 1)
             for j, step in enumerate(stage.steps):
-                rec = lr.step(step.id)
+                rec = path.record(lr, step)
                 with cols[j]:
                     if rec.completed:
                         kind, label, icon = "done", "", ":material/check:"
@@ -111,7 +117,7 @@ def map_view() -> None:
                         _rerun()
                     st.html(ui.node_label(lesson(step, t).get("title", step.id), rec.stars if rec.completed else None))
             with cols[-1]:
-                boss_done, boss_open = lr.boss(stage.id).passed, path.boss_unlocked(lr, stage)
+                boss_done, boss_open = path.boss_record(lr, stage).passed, path.boss_unlocked(lr, stage)
                 if st.button("", key=f"node_{'bossdone' if boss_done else 'boss'}_{stage.id}",
                              icon=":material/emoji_events:" if boss_done else ":material/shield:",
                              disabled=not boss_open and not boss_done,
@@ -213,7 +219,7 @@ def step_player(a: dict) -> None:
             if path.skippable(lr, step):
                 st.html(ui.feedback("good", t.t("game.skip_mastered"), ""))
                 if st.button(t.t("game.skip_mastered"), icon=":material/fast_forward:", key="skip_level"):
-                    lr.skip_step(step.id)
+                    lr.skip_step(path.key(step.id))
                     back_to_map()
                     _rerun()
             cols = st.columns([7, 5], gap="large") if e else [st.container(), st.container()]
@@ -228,7 +234,7 @@ def step_player(a: dict) -> None:
                                     placeholder=t.t("game.observation_placeholder"), label_visibility="collapsed")
                 go = st.columns(2)
                 if go[0].button(t.t("game.show_me"), type="primary", key="show_me", width="stretch"):
-                    a["obs_xp"] = lr.write_observation(step.id, note or "")
+                    a["obs_xp"] = lr.write_observation(path.key(step.id), note or "")
                     tutor = shared.tutor(sid)
                     if tutor and e and len((note or "").split()) >= 2:
                         with st.spinner(t.t("tutor.reading")):
@@ -236,7 +242,7 @@ def step_player(a: dict) -> None:
                                                           tutor_ui.chart_context(data, step.chart_id, text),
                                                           note, shared.learner_id())
                         if reply:
-                            lr.judge_observation(step.id, bool(reply.data.get("credit_own_words")))
+                            lr.judge_observation(path.key(step.id), bool(reply.data.get("credit_own_words")))
                             a["tutor_obs"] = {"text": reply.text, "tags": [tg for tg, _ in reply.sources],
                                               "verdict": reply.data.get("verdict", "partly")}
                         else:
@@ -258,7 +264,7 @@ def step_player(a: dict) -> None:
             if e:
                 cols = st.columns([7, 5], gap="large")
                 cols[0].altair_chart(e.figure, width="stretch", theme=None)
-                mine = lr.step(step.id).observation
+                mine = path.record(lr, step).observation
                 with cols[1]:
                     if mine:
                         st.html(ui.my_message(mine))
@@ -351,8 +357,8 @@ def step_player(a: dict) -> None:
 
     # -- 3. Done ----------------------------------------------------------------
     if "stars" not in a:
-        a["stars"] = lr.complete_step(step.id, a["all_first"])
-    rec = lr.step(step.id)
+        a["stars"] = lr.complete_step(path.key(step.id), a["all_first"])
+    rec = path.record(lr, step)
     chips = [t.t("game.xp_earned", xp=lr.xp - a["xp0"])]
     chips += [t.t("game.mastered", concepts=ex.concepts[c].name) for c in a["mastered"] if c in ex.concepts]
     chips += [t.t("game.new_badge", badge=t.t(f"badges.{bid}.name")) for bid in a["badges"]]
@@ -470,15 +476,15 @@ def boss_player(a: dict) -> None:
         return
 
     if a["result"] is None:
-        a["result"] = lr.finish_boss(stage.id, a["score"])
+        a["result"] = lr.finish_boss(path.key(stage.id), a["score"])
     name = b.sectors[sid].company_data(ticker).ref.name if False else shared.company_data(sid, ticker).ref.name
     with st.container(key="card_boss_result"):
         chips = [t.t("game.boss_score", score=a["score"], total=len(qs), needed=game.BOSS_PASS_MARK),
                  t.t("game.reveal", name=name)]
         if a["result"]:
-            promoted = lr.rank != a["rank0"]
+            promoted = path.rank(lr) != a["rank0"]
             chips.insert(0, t.t("game.xp_earned", xp=lr.xp - a["xp0"]))
-            title = t.t("game.promoted", rank=t.t(f"ranks.{lr.rank}")) if promoted else t.t("game.boss_passed")
+            title = t.t("game.promoted", rank=t.t(f"ranks.{path.rank(lr)}")) if promoted else t.t("game.boss_passed")
             st.html(ui.celebrate("trophy" if promoted else "check", title, t.t("game.boss_passed"), chips))
         else:
             st.html(ui.celebrate("shield", t.t("game.boss_failed"), t.t("game.boss_retry"), chips))

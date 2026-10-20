@@ -57,7 +57,7 @@ def test_learn_flow_from_map_to_level_complete():
         at.radio[0].set_value(q.answer).run()
         at.button(key="submit").click().run()
     assert not at.exception, at.exception
-    assert lr.step("revenue").completed and lr.step("revenue").stars == 3
+    assert lr.step("saas:revenue").completed and lr.step("saas:revenue").stars == 3
     assert "Level complete" in html(at) and lr.xp > 0
 
 

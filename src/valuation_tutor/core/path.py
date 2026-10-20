@@ -7,6 +7,10 @@ to steps by kind and concept. A sector adapts the path with PathChanges
 
 Unlocking: levels open one after another within a stage; a stage's boss opens
 when all its levels are done; the next stage opens when the boss is beaten.
+
+Level and boss records are kept per sector ("saas:growth"), because finishing
+a software lesson isn't finishing the supermarket one. Concept mastery and
+badges are not prefixed: those carry across sectors.
 """
 
 from __future__ import annotations
@@ -139,27 +143,42 @@ class LearningPath:
 
     # -- progress -----------------------------------------------------------------
 
+    def key(self, step_id: str) -> str:
+        return f"{self.sector.id}:{step_id}"
+
+    def record(self, learner: Learner, step: Step):
+        return learner.step(self.key(step.id))
+
+    def boss_record(self, learner: Learner, stage: Stage):
+        return learner.boss(self.key(stage.id))
+
+    def bosses_passed(self, learner: Learner) -> int:
+        return sum(self.boss_record(learner, st).passed for st in self.stages)
+
+    def rank(self, learner: Learner) -> str:
+        return game.rank_for(self.bosses_passed(learner))
+
     def stage_unlocked(self, learner: Learner, stage: Stage) -> bool:
         i = self.stages.index(stage)
-        return i == 0 or learner.boss(self.stages[i - 1].id).passed
+        return i == 0 or self.boss_record(learner, self.stages[i - 1]).passed
 
     def step_unlocked(self, learner: Learner, step: Step) -> bool:
         stage = self.stage_of(step.id)
         if not self.stage_unlocked(learner, stage):
             return False
         i = stage.steps.index(step)
-        return i == 0 or learner.step(stage.steps[i - 1].id).completed
+        return i == 0 or self.record(learner, stage.steps[i - 1]).completed
 
     def boss_unlocked(self, learner: Learner, stage: Stage) -> bool:
-        return self.stage_unlocked(learner, stage) and all(learner.step(s.id).completed for s in stage.steps)
+        return self.stage_unlocked(learner, stage) and all(self.record(learner, s).completed for s in stage.steps)
 
     def next_up(self, learner: Learner) -> tuple[str, str] | None:
         """("step", id) or ("boss", stage id) for the first thing not yet done, or None when finished."""
         for stage in self.stages:
             for s in stage.steps:
-                if not learner.step(s.id).completed:
+                if not self.record(learner, s).completed:
                     return ("step", s.id)
-            if not learner.boss(stage.id).passed:
+            if not self.boss_record(learner, stage).passed:
                 return ("boss", stage.id)
         return None
 
