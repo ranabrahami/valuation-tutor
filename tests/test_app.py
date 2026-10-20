@@ -24,18 +24,54 @@ pytestmark = pytest.mark.skipif(
     reason="engine data not built")
 
 
-def test_app_runs_and_switches_company():
+def html(at) -> str:
+    return " ".join(e.proto.body for e in at.get("html"))
+
+
+def questions(at):
+    """The questions of the level in progress (app/ is on sys.path once the app has run)."""
+    import shared
+    a = at.session_state["activity"]
+    return shared.step_questions("saas", a["id"], a["company"])
+
+
+def test_learn_flow_from_map_to_level_complete():
     at = AppTest.from_file(str(APP), default_timeout=120)
     at.run()
     assert not at.exception, at.exception
-    html = lambda: " ".join(e.proto.body for e in at.get("html"))   # noqa: E731
-    assert "<h1>HubSpot</h1>" in html()
-    at.selectbox[1].set_value("DDOG").run()
-    assert not at.exception
-    assert "<h1>Datadog</h1>" in html()
-    assert "loss" in html()                       # DDOG: a loss on paper, cash in the bank
-    at.segmented_control(key="section").set_value("value").run()
-    assert not at.exception and "price" in html()
+    assert "Intern" in html(at) and "Mystery company" in html(at)
+    at.button(key="continue").click().run()                      # start level 1
+    assert "Reading a revenue chart" in html(at)
+    at.text_area(key="obs_revenue").input("The bars rise every year and the last is the tallest").run()
+    at.button(key="show_me").click().run()
+    assert "What this shows for Adobe" in html(at)
+    at.button(key="to_check").click().run()
+    lr = at.session_state["learner"]
+    for _ in range(5):                                           # answer every question correctly
+        if "next_q" in [b.key for b in at.button]:
+            at.button(key="next_q").click().run()
+            continue
+        if not at.radio:
+            break
+        q = questions(at)[at.session_state["activity"]["q"]]
+        at.radio[0].set_value(q.answer).run()
+        at.button(key="submit").click().run()
+    assert not at.exception, at.exception
+    assert lr.step("revenue").completed and lr.step("revenue").stars == 3
+    assert "Level complete" in html(at) and lr.xp > 0
+
+
+def test_mistake_unlocks_a_different_explanation():
+    at = AppTest.from_file(str(APP), default_timeout=120)
+    at.run()
+    at.button(key="continue").click().run()
+    at.button(key="skip_obs").click().run()
+    at.button(key="to_check").click().run()
+    q = questions(at)[0]
+    at.radio[0].set_value(next(i for i in range(len(q.options)) if i != q.answer)).run()
+    at.button(key="submit").click().run()
+    assert "Not quite" in html(at) and "try it another way" in html(at)
+    assert at.session_state["learner"].concept(q.concepts[0]).struggles == 1
 
 
 @pytest.fixture(scope="module")
@@ -67,7 +103,9 @@ def test_page_renders_in_a_real_browser(app_url):
             pytest.skip(f"Google Chrome unavailable: {exc}")
         page = browser.new_page(viewport={"width": 1500, "height": 1000})
         page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto(app_url)
+        page.goto(app_url)                                      # Learn: the map
+        page.wait_for_selector(".rn-rank", timeout=90_000)
+        page.goto(f"{app_url}/explore")
         page.wait_for_selector('[data-testid="stVegaLiteChart"]', timeout=90_000)
         page.wait_for_timeout(4_000)
         charts = page.locator('[data-testid="stVegaLiteChart"]').count()

@@ -347,6 +347,7 @@ game:
   xp: "{xp} XP"
   hints: "{n} hints"
   streak: "{n}-day streak"
+  no_streak: "No streak yet"
   rank_label: "Your rank"
   next_rank: "Beat the next boss to become {rank}."
   top_rank: "You've reached the top."
