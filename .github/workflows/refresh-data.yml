@@ -22,20 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Read the engine version pinned in requirements.txt
         id: engine
-        run: echo "ref=$(grep -oP 'saas-valuation-engine\.git@\K[0-9a-f]+' requirements.txt)" >> "$GITHUB_OUTPUT"
+        run: echo "ref=$(grep -oP 'saas-valuation-engine\.git@\K[0-9a-f]{40}' requirements.txt)" >> "$GITHUB_OUTPUT"
 
       # The same engine commit the deployed app uses, so pipeline and app agree.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ranabrahami/saas-valuation-engine
           ref: ${{ steps.engine.outputs.ref }}
           path: engine
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
