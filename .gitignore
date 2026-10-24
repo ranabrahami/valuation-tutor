@@ -3,7 +3,8 @@
 
 # Secrets (Anthropic key, database URL, OAuth settings)
 .env
-.streamlit/secrets*.toml        # secrets.toml, secrets.cloud.toml (the .example stays tracked)
+# secrets.toml and secrets.cloud.toml (the .example file stays tracked)
+.streamlit/secrets*.toml
 
 # Local learner database and tutor cache
 *.sqlite
